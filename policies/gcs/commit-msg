@@ -259,18 +259,20 @@ if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnkt
 			fi
 		fi
 
-		echo "$tagHookName $warningMessage"
-		echo "Verificando se a mensagem do commit esta no padrao esperado..."
-		echo ""
+		if [ "$repositoryUsesWorkflow" == true ]; then
+			echo "$tagHookName $warningMessage"
+			echo "Verificando se a mensagem do commit esta no padrao esperado..."
+			echo ""
 
-		if ! [[ "$commitMessage" =~ $regexTaskIdMessage ]]; then
-			echo "$tagHookName $errorMessage"
-			echo "A mensagem do commit nao esta no padrao esperado!"
-			echo "Portanto, deve-se ajusta-la e tentar fazer o commit novamente."
-			echo "Exemplo: #TaskId - Mensagem... (a mensagem deve conter no minimo 15 caracteres)"
-			echo "Regex: $regexTaskIdMessage"
-			echo "$helpMessageGCS"
-			exit 1
+			if ! [[ "$commitMessage" =~ $regexTaskIdMessage ]]; then
+				echo "$tagHookName $errorMessage"
+				echo "A mensagem do commit nao esta no padrao esperado!"
+				echo "Portanto, deve-se ajusta-la e tentar fazer o commit novamente."
+				echo "Exemplo: #TaskId - Mensagem... (a mensagem deve conter no minimo 15 caracteres)"
+				echo "Regex: $regexTaskIdMessage"
+				echo "$helpMessageGCS"
+				exit 1
+			fi
 		fi
 
 		if [ "$featureBranchEpic" == true ]; then
