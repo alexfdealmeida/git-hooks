@@ -360,7 +360,7 @@ if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnkt
 			#echo "File: $file"
 			#echo "Extension: $extension"
 
-			elif [ "$extension" == "sh" ]; then
+			if [ "$extension" == "sh" ]; then
 				if [ "$filePathLowercase" == "copy-git-hooks.sh" ] || [ "$filePathLowercase" == "getting-started.sh" ] || [ "$filePathLowercase" == "git-config-local-default.sh" ] || 
 				   [ "$filePathLowercase" == "git-submodules-init.sh" ] || [ "$filePathLowercase" == "git-submodules-update.sh" ] || [ "$filePathLowercase" == "node-npm-install.sh" ] ||
 				   [ "$filePathLowercase" == "git-submodules-init-ci.sh" ] || [ "$filePathLowercase" == "git-checkout-ci.sh" ] || [ "$filePathLowercase" == "git-create-tag-ci.sh" ] || 
