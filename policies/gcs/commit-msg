@@ -1,0 +1,537 @@
+#!/bin/sh
+#
+# An example hook script to check the commit log message.
+# Called by "git commit" with one argument, the name of the file
+# that has the commit message.  The hook should exit with non-zero
+# status after issuing an appropriate message if it wants to stop the
+# commit.  The hook is allowed to edit the commit message file.
+#
+# To enable this hook, rename this file to "commit-msg".
+
+# Uncomment the below to add a Signed-off-by line to the message.
+# Doing this in a hook is a bad idea in general, but the prepare-commit-msg
+# hook is more suited to it.
+#
+# SOB=$(git var GIT_AUTHOR_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
+# grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
+
+# This example catches duplicate Signed-off-by lines.
+
+test "" = "$(grep '^Signed-off-by: ' "$1" |
+	 sort | uniq -c | sed -e '/^[ 	]*1[ 	]/d')" || {
+	echo >&2 Duplicate Signed-off-by lines.
+	exit 1
+}
+
+if [ -d "/C/Program Files/Git/usr/bin/" ]; then
+	pathBase64="/C/Program Files/Git/usr/bin/base64"
+	pathPrintf="/C/Program Files/Git/usr/bin/printf"
+	pathSort="/C/Program Files/Git/usr/bin/sort"
+	pathHead="/C/Program Files/Git/usr/bin/head"
+elif [ -d "/C/Program Files (x86)/Git/usr/bin/" ]; then
+	pathBase64="/C/Program Files (x86)/Git/usr/bin/base64"
+	pathPrintf="/C/Program Files (x86)/Git/usr/bin/printf"
+	pathSort="/C/Program Files (x86)/Git/usr/bin/sort"
+	pathHead="/C/Program Files (x86)/Git/usr/bin/head"
+else
+	pathBase64="base64"
+	pathPrintf="printf"
+	pathSort="sort"
+	pathHead="head"
+fi
+
+if [ -d "/C/Program Files/Git/mingw64/bin/" ]; then
+	pathCurl="/C/Program Files/Git/mingw64/bin/curl"
+elif [ -d "/C/Program Files (x86)/Git/mingw64/bin/" ]; then
+	pathCurl="/C/Program Files (x86)/Git/mingw64/bin/curl"
+else
+	pathCurl="curl"
+fi
+
+errorMessage="ERRO: "
+warningMessage="Aviso: "
+helpMessage="Em caso de duvidas, entre em contato com o coordenador da sua equipe."
+helpMessageGCS="Em caso de duvidas, entre em contato com a equipe de GCS."
+prefixBranch="Branch:"
+main="main"
+
+#regexTaskIdMessage="#[0-9]+[ ][-][ ]+[a-zA-Z].{15,}+$"
+regexTaskIdMessage="#[0-9]+[ ][-][ ]+[a-zA-z0-9].{15,}.+$"
+regexBranchName="^$prefixBranch[ ][a-zA-Z0-9][a-zA-Z0-9]"
+regexScriptFlyway="^V[0-9]+_[0-9]+__.*.sql"
+regexScriptLiquibaseIntegrations="^[0-9]{3}\.yaml$"
+regexScriptLiquibaseTasks="^[0-9]{3}\.(sql|yaml)$|^[0-9]{3}_.+\.(sql|yaml)$"
+regexScriptLiquibaseReintegrations="^[0-9]{4}\.(sql|yaml)$"
+regexTaskId="#[0-9]+"
+regexBugfixBranch="^bugfix-[0-9]+$"
+regexFeatureBranch="^feature-[0-9]+$"
+regexTrainingBranch="^training-[0-9]+$"
+regexEpicBranch="^epic-[0-9]+$"
+regexReleaseBranch="^release-[0-9]+-[0-9]+-[0-9]+$"
+regexPackageBranch="^package-arq-[0-9]+-[0-9]+-[0-9]+$"
+regexHotfixBranch="^hotfix-[0-9]+$"
+regexHotfixProductionBranch="^hotfix-production-[0-9]+$"
+#regexFeatureBranchSprint="^feature-[0-9]{4}-[0-9]{2}$|^feature-arq-[0-9]{4}-[0-9]{2}$"
+
+tipoCorrecao="Correção"
+tipoEvolucao="Evolução"
+
+tagHookName="[commit-msg]"
+
+currentBranchName="$(git branch | grep ^* | sed "s/*//" | sed "s/ //")"
+
+currentBranch="$prefixBranch $currentBranchName"
+
+repositoryUrl="$(git config --local --get remote.origin.url)"
+
+repositoryName="$(basename -s .git "$repositoryUrl")"
+
+if [[ "$currentBranchName" =~ $regexBugfixBranch ]] || [[ "$currentBranchName" =~ $regexFeatureBranch ]] || [[ "$currentBranchName" =~ $regexTrainingBranch ]] || [[ "$currentBranchName" =~ $regexEpicBranch ]] || [[ "$currentBranchName" =~ $regexHotfixBranch ]]; then
+	taskIdBranchName="$(echo "$currentBranchName" | sed -e "s/[^0-9]//g")"
+
+	if [[ "$currentBranchName" =~ $regexEpicBranch ]]; then
+		featureBranchEpic=true
+	else
+		featureBranchEpic=false
+	fi
+else
+	taskIdBranchName=""
+fi
+
+#if [[ "$currentBranchName" =~ $regexFeatureBranchSprint ]] || [[ "$currentBranchName" =~ $regexFeatureBranch ]] || [[ "$currentBranchName" =~ $regexTrainingBranch ]] || 
+if [[ "$currentBranchName" =~ $regexFeatureBranch ]] || [[ "$currentBranchName" =~ $regexTrainingBranch ]] || 
+   [[ "$currentBranchName" =~ $regexEpicBranch ]] || [[ "$currentBranchName" =~ $regexBugfixBranch ]] || [[ "$currentBranchName" =~ $regexPackageBranch ]]; then
+	branchBaseDevelop=true
+elif [[ "$currentBranchName" =~ $regexReleaseBranch ]]; then
+	branchBaseRelease=true
+elif [[ "$currentBranchName" =~ $regexHotfixProductionBranch ]]; then
+	branchBaseProduction=true
+elif [[ "$currentBranchName" =~ $regexHotfixBranch ]] || [ "$currentBranchName" == "$main" ]; then
+	branchBaseMain=true
+fi
+
+siagriGSKEnvironmentVariable=$SiagriGSK
+siagriGSKRepositoryEnvironmentVariable=$SiagriGSKRepository
+SiagriGSKSUserSCMEnvironmentVariable=$SiagriGSKSUserSCM
+
+siagriGSKInstalled=false
+
+if [ -n "$siagriGSKEnvironmentVariable" ]; then
+	searchReturn="$(type gsk)"
+
+	if [ "$?" -eq "0" ]; then
+		siagriGSKInstalled=true
+	fi
+fi
+
+author="$(git var GIT_AUTHOR_IDENT | cut -d '<' -f 1 | sed 's/ //g')"
+userSCM=false
+
+#if [ "$author" == "$(echo YWxleC5hbG1laWRhCg== | "$pathBase64" -d)" ] || [ "$author" == "$(echo cGVkcm8uYmF0aXN0YQo= | "$pathBase64" -d)" ]; then
+#	userSCM=true
+#fi
+
+if [ -n "$siagriGSKRepositoryEnvironmentVariable" ]; then
+	if [ -n "$SiagriGSKSUserSCMEnvironmentVariable" ]; then
+		if [ "$author" == "$(echo $SiagriGSKSUserSCMEnvironmentVariable | "$pathBase64" -d)" ]; then
+			userSCM=true
+		fi
+	fi
+
+	if [ "$userSCM" == false ]; then
+		if [ "$(gsk_show_key_scm)" == "Z3NrLWtleS1zY20K" ]; then
+			userSCM=true
+		fi
+	fi
+
+	if [ "$userSCM" == false ]; then
+		if [ "$siagriGSKInstalled" == true ]; then
+			echo "$tagHookName $warningMessage"
+			echo "Verificando se o usuario '$author' pertence ao 'grupo-gcs' no Azure DevOps..."
+
+			gsk_azure_api_group_member_exists "$author" e9447f45-0516-435d-b8b6-f4b6f236a3b8 --no-show-response -q
+
+			if [ "$?" -eq "0" ]; then
+				userSCM=true
+			fi
+
+			echo ""
+		else
+			echo "$tagHookName $warningMessage"
+			echo "Nao foi possivel verificar se o usuario '$author' pertence ao 'grupo-gcs', pois o SiagriGSK NAO esta instalado!"
+			echo ""
+		fi
+	fi
+fi
+
+function setCommitMessage () {
+	commitMessage="$(cat "$1")"
+}
+
+setCommitMessage "$1"
+
+# Ao adicionar um repositorio, deve-se manter o ";" no final da string, para evitar resultado "falso-positivo"
+repositoriesTasksAzureDevOps=";"
+
+taskAzureDevOps=falsetaskAzureDevOps=false
+
+if [[ "$repositoriesTasksAzureDevOps" =~ "$repositoryName;" ]]; then
+	taskAzureDevOps=true
+fi
+
+# Ao adicionar um repositorio, deve-se manter o ";" no final da string, para evitar resultado "falso-positivo"
+repositoriesWorkflow=";"
+
+if [[ "$repositoriesWorkflow" =~ "$repositoryName;" ]]; then
+	repositoryUsesWorkflow=true
+else
+	repositoryUsesWorkflow=false
+fi
+
+function validarVersaoSiagriGSK () {
+	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktc2lhZ3JpZ3NrLXZlcnNpb24K | "$pathBase64" -d)" ]]; then
+		if [ "$siagriGSKInstalled" == true ]; then
+			echo "$tagHookName $warningMessage"
+			echo "Verificando versao do SiagriGSK..."
+			echo ""
+
+			requiredVersionSiagriGSK="10.1.0"
+			currentVersionSiagriGSK="$(gsk_version_short)"
+
+			if [ "$("$pathPrintf" "%s\n" "$requiredVersionSiagriGSK" "$currentVersionSiagriGSK" | "$pathSort" -V | "$pathHead" -n1)" != "$requiredVersionSiagriGSK" ]; then
+				echo "$tagHookName $errorMessage"
+				echo "A versao do SiagriGSK esta desatualizada ($currentVersionSiagriGSK)!"
+
+				if [ "$userSCM" == false ]; then
+					updateCommand="gsk update"
+				else
+					updateCommand="gsk update_gcs"
+				fi
+
+				echo "Portanto, deve-se atualizar para a versao mais recente ($requiredVersionSiagriGSK), utilizando o comando '$updateCommand'."
+
+				if [ "$userSCM" == false ]; then
+					echo "Caso deseje mais informacoes, acesse: https://dev.azure.com/grupo-siagri/gcs/_wiki/wikis/gcs.wiki/19/Atualiza%C3%A7%C3%A3o"
+					echo "$helpMessageGCS"
+				fi
+
+				exit 1
+			fi
+		else
+			echo "$tagHookName $warningMessage"
+			echo "Nao foi possivel verificar a versao do SiagriGSK, pois ele NAO esta instalado!"
+			echo ""
+		fi
+	fi
+}
+
+function showProtectedFilesMessage () {
+	if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcG9saWNpZXMtcHJvdGVjdGVkLWZpbGVzCg== | "$pathBase64" -d)" ]] ); then
+		echo "$tagHookName $errorMessage"
+		echo "Arquivo/diretorio protegido pelas politicas de seguranca da GCS!"
+		echo "Arquivo: $filePath"
+		echo "$helpMessageGCS"
+		exit 1
+	fi
+}
+
+function validarTipoTarefa () {
+	pTarefa="$1"
+	pTipo="$2"
+
+	gsk_azure_api_task_key_value $pTarefa "System.WorkItemType" "$pTipo" --no-show-response -q
+
+	if [ "$?" -ne "0" ]; then
+		retornoValidarTipoTarefa=false
+	else
+		retornoValidarTipoTarefa=true
+	fi
+}
+
+validarVersaoSiagriGSK
+
+if ! [[ "$commitMessage" =~ $regexBranchName ]]; then
+	echo "$tagHookName $warningMessage"
+	echo "Verificando nome do branch corrente..."
+	echo ""
+
+	#Tratamento para contemplar as seguintes situacoes:
+	#(no branch) - commit
+	#(no branch, rebasing stable) - rebase
+	#(HEAD detached at 9.9.9) - tag
+	if [[ "$currentBranch" =~ "$prefixBranch (" ]]; then
+		echo "$tagHookName $errorMessage"
+		echo "Nao foi possivel identificar o nome do branch corrente '$currentBranch'!"
+		echo "Portanto, antes de fazer um commit, deve-se posicionar no branch desejado."
+		exit 1
+	fi
+
+	if [ -n "$taskIdBranchName" ] && [ "$featureBranchEpic" == false ]; then
+		if ! [[ "$commitMessage" =~ "#$taskIdBranchName" ]] && ! [[ "$commitMessage" =~ $regexTaskId ]]; then
+			echo "#$taskIdBranchName"" - $commitMessage" > "$1"
+			echo "$tagHookName $warningMessage"
+			setCommitMessage "$1"
+			echo "Numero da tarefa adicionado antes da mensagem do commit"
+		fi
+	fi
+
+	echo "$currentBranch""; $commitMessage" > "$1"
+	setCommitMessage "$1"
+	echo "$tagHookName $warningMessage"
+	echo "Nome do branch corrente adicionado antes da mensagem do commit"
+	echo ""
+
+	echo "Mensagem do commit atualizada:"
+	echo "'$commitMessage'"
+	echo ""
+elif ! [[ "$commitMessage" =~ ";" ]]; then
+	echo "$tagHookName $errorMessage"
+	echo "Informe o nome do branch antes da mensagem do commit!"
+	echo "Exemplo: '$prefixBranch nome-branch; #TaskId - Mensagem...'"
+	exit 1
+fi
+
+if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcG9saWNpZXMtaG9vawo= | "$pathBase64" -d)" ]] ); then
+	taskId="$(echo $commitMessage | cut -d '#' -f 2 | cut -d '-' -f 1 | sed "s/ //g")"
+
+	validouNumeroTarefaBranchCorrente=false
+	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktbWVzc2FnZS1wYXR0ZXJuCg== | "$pathBase64" -d)" ]]; then
+		if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktdGFzay1pZC1icmFuY2gK | "$pathBase64" -d)" ]]; then
+			if [ -n "$taskIdBranchName" ] && [ "$featureBranchEpic" == false ]; then
+				echo "$tagHookName $warningMessage"
+				echo "Verificando se o numero da tarefa esta de acordo com o branch corrente..."
+				echo ""
+
+				if ! [[ "$commitMessage" =~ "#$taskIdBranchName" ]]; then
+					echo "$tagHookName $errorMessage"
+					echo "O numero da tarefa NAO esta de acordo com o branch corrente!"
+					echo "Portanto, deve-se ajusta-la e tentar fazer o commit novamente."
+					echo "Branch corrente: $currentBranchName"
+					echo "Tarefa atual: #$taskId"
+					echo "Tarefa esperada: #$taskIdBranchName"
+					echo "$helpMessageGCS"
+					exit 1
+				else
+					validouNumeroTarefaBranchCorrente=true
+				fi
+			fi
+		fi
+
+		echo "$tagHookName $warningMessage"
+		echo "Verificando se a mensagem do commit esta no padrao esperado..."
+		echo ""
+
+		if ! [[ "$commitMessage" =~ $regexTaskIdMessage ]]; then
+			echo "$tagHookName $errorMessage"
+			echo "A mensagem do commit nao esta no padrao esperado!"
+			echo "Portanto, deve-se ajusta-la e tentar fazer o commit novamente."
+			echo "Exemplo: #TaskId - Mensagem... (a mensagem deve conter no minimo 15 caracteres)"
+			echo "Regex: $regexTaskIdMessage"
+			echo "$helpMessageGCS"
+			exit 1
+		fi
+
+		if [ "$featureBranchEpic" == true ]; then
+			echo "$tagHookName $warningMessage"
+			echo "Verificando se o numero da tarefa principal foi informado na mensagem do commit..."
+			echo ""
+
+			if [[ "$commitMessage" =~ "#$taskIdBranchName" ]]; then
+				echo "$tagHookName $errorMessage"
+				echo "A tarefa principal NAO pode ser informada na mensagem do commit!"
+				echo "Portanto, deve-se informar apenas a subtarefa e tentar fazer o commit novamente."
+				echo "Tarefa: #$taskIdBranchName"
+				echo "$helpMessageGCS"
+				exit 1
+			fi
+		fi
+
+		if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktdGFzay1pZC11cmwK | "$pathBase64" -d)" ]]; then
+			if [ "$taskAzureDevOps" == true ]; then
+				if [ "$siagriGSKInstalled" == true ]; then
+					messageVerifyTask="Portanto, deve-se verificar o numero da tarefa e tentar fazer o commit novamente."
+					messageTagRedmine="Observacao: Caso seja uma tarefa do Redmine, deve-se utilizar a tag '$tagRedmine'."
+
+					if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktdGFzay10eXBlCg== | "$pathBase64" -d)" ]]; then
+						if [ "$validouNumeroTarefaBranchCorrente" == false ]; then
+							echo "$tagHookName $warningMessage"
+							echo "Verificando o tipo da tarefa no Azure DevOps..."
+
+							if [[ "$currentBranchName" =~ $regexBugfixBranch ]]; then
+								validarTipoTarefa "$taskId" "$tipoCorrecao"
+							elif [[ "$currentBranchName" =~ $regexFeatureBranch ]] || [[ "$currentBranchName" =~ $regexTrainingBranch ]]; then
+								validarTipoTarefa "$taskId" "$tipoEvolucao"
+							elif [[ "$currentBranchName" =~ $regexReleaseBranch ]] || [[ "$currentBranchName" =~ $regexHotfixBranch ]]; then
+								validarTipoTarefa "$taskId" "$tipoCorrecao"
+
+								if [ "$retornoValidarTipoTarefa" == false ]; then
+									validarTipoTarefa "$taskId" "$tipoEvolucao"
+								fi
+							else
+								validarTipoTarefa "$taskId" "$tipoEvolucao"
+
+								if [ "$retornoValidarTipoTarefa" == false ]; then
+									validarTipoTarefa "$taskId" "$tipoCorrecao"
+								fi
+							fi
+
+							if [ "$retornoValidarTipoTarefa" == false ]; then
+								echo "$tagHookName $errorMessage"
+								echo "NAO foi possivel localizar a tarefa atraves da API do Azure DevOps ou o tipo da tarefa eh incompativel com o branch corrente!"
+								echo "$messageVerifyTask"
+								echo "$messageTagRedmine"
+								echo "Tarefa: #$pTarefa"
+								echo "Branch: $currentBranchName" 
+								echo "$helpMessageGCS"
+								exit 1
+							else
+								echo ""
+							fi
+						fi
+					else
+						echo "$tagHookName $warningMessage"
+						echo "Verificando o numero da tarefa no Azure DevOps..."
+
+						gsk_azure_api_task_exists $taskId --no-show-response -q
+
+						if [ "$?" -ne "0" ]; then
+							echo "$tagHookName $errorMessage"
+							echo "Nao foi possivel localizar a tarefa atraves da API do Azure DevOps!"
+							echo "$messageVerifyTask"
+							echo "$messageTagRedmine"
+							echo "Tarefa: #$taskId"
+							echo "$helpMessageGCS"
+							exit 1
+						else
+							echo ""
+						fi
+					fi
+				else
+					echo "$tagHookName $errorMessage"
+					echo "Nao foi possivel verificar o numero da tarefa, atraves da API do Azure DevOps, pois o SiagriGSK NAO esta instalado!"
+					echo "Portanto, eh recomendavel instalar o SiagriGSK ou, sob sua responsabilidade, adicionar a tag '$(echo LS1uby12ZXJpZnktdGFzay1pZC11cmwK | "$pathBase64" -d)' na mensagem do commit."
+					echo "Observacao: Caso seja uma tarefa do Redmine, deve-se utilizar a tag '$tagRedmine'."
+					echo "Tarefa: #$taskId"
+					echo "$helpMessageGCS"
+					exit 1
+				fi
+			fi
+		fi
+	fi
+
+	if [ "$repositoryUsesWorkflow" == true ]; then
+		if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktbWVzc2FnZS1wYXR0ZXJuCg== | "$pathBase64" -d)" ]] ); then
+			if [ "$currentBranchName" == "$main" ]; then
+				echo "$tagHookName $errorMessage"
+				echo "NAO eh permitido fazer um commit diretamente no branch '$main'!"
+				echo "Caso deseje mais informacoes, acesse: https://dev.azure.com/grupo-siagri/gcs/_wiki/wikis/gcs.wiki/217/Corre%C3%A7%C3%B5es-branch-main-(hotfix)#"
+				echo "$helpMessageGCS"
+				exit 1
+			fi
+		fi
+	fi
+
+	if [ "$siagriGSKInstalled" == true ]; then
+		isUrlAzureDevOps="$(is_url_azure_devops)"
+
+		if [ "$isUrlAzureDevOps" == true ]; then
+			repositoryUrl="$(get_url_azure_ssh_to_https "$repositoryUrl")"
+
+			projectAzure="$(basename $(dirname $(dirname "$repositoryUrl")))"
+			projectAzure="${projectAzure,,}"
+		fi
+	fi
+
+	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcmVtb3RlLWJyYW5jaC1kZWxldGVkCg== | "$pathBase64" -d)" ]]; then
+		configBranchRemote="$(git config --local --get branch.$currentBranchName.remote)"
+
+		if [ -n "$configBranchRemote" ]; then
+			echo "$tagHookName $warningMessage"
+			echo "Buscando referencias do branch '$currentBranchName' no repositorio remoto"
+			git fetch origin $currentBranchName
+
+			if [ "$?" -ne "0" ]; then
+				echo "$tagHookName $errorMessage"
+				echo "Nao foi possivel fazer o commit no branch local '$currentBranchName'!" 
+				echo "Pois o branch remoto 'origin/$currentBranchName' ja foi apagado ou nao foi possivel conectar com o repositorio remoto."
+				echo "$helpMessageGCS"
+				exit 1
+			else
+				echo ""
+			fi
+		fi
+	fi
+
+	listFiles="$(git diff --cached --name-status | tr '\t' '|')"
+
+	#echo "$listFiles"
+
+	if [ -n "$listFiles" ]; then
+		echo "$tagHookName $warningMessage"
+		echo "Verificando regras de commit no(s) arquivo(s):"
+
+		while read -r line; do
+			status="$(echo $line | cut -d '|' -f 1)"
+			status="${status^^}"
+
+			# Se o status for 'Rename'...
+			if [[ "$status" =~ "R" ]]; then
+				# ... o novo nome do arquivo, corresponde a terceira posicao separada por pipe '|'
+				# Exemplos:
+				#R100|Mapas/classes/integracao/layout/agriQ/IntegracaoAgriQ.mm|Mapas/classes/integracao/layout/agriqs/IntegracaoAgriQ.mm
+				#R099|Mapas/classes/integracao/layout/agriQ/TipoServicoAgriQ.mm|Mapas/classes/integracao/layout/agriqs/TipoServicoAgriQ.mm
+				filePath="$(echo $line | cut -d '|' -f 3)"
+			else
+				filePath="$(echo $line | cut -d '|' -f 2)"
+			fi
+
+			filePathLowercase="${filePath,,}"
+
+			file="$(basename -- "$filePath")"
+
+			fileLowercase="${file,,}"
+
+			extension="${file##*.}"
+			extension="${extension,,}"
+
+			echo "$filePath"
+
+			#echo "Line: $line"
+			#echo "Status: $status"
+			#echo "FilePath: $filePath"
+			#echo "File: $file"
+			#echo "Extension: $extension"
+
+			elif [ "$extension" == "sh" ]; then
+				if [ "$filePathLowercase" == "copy-git-hooks.sh" ] || [ "$filePathLowercase" == "getting-started.sh" ] || [ "$filePathLowercase" == "git-config-local-default.sh" ] || 
+				   [ "$filePathLowercase" == "git-submodules-init.sh" ] || [ "$filePathLowercase" == "git-submodules-update.sh" ] || [ "$filePathLowercase" == "node-npm-install.sh" ] ||
+				   [ "$filePathLowercase" == "git-submodules-init-ci.sh" ] || [ "$filePathLowercase" == "git-checkout-ci.sh" ] || [ "$filePathLowercase" == "git-create-tag-ci.sh" ] || 
+				   [ "$filePathLowercase" == "get-new-version-ci.sh" ] || [ "$filePathLowercase" == "has-changes-ci.sh" ]; then
+					showProtectedFilesMessage
+				fi
+			elif [ "$filePathLowercase" == ".gitmodules" ] || [ "$filePathLowercase" == ".gitattributes" ] || [ "$filePathLowercase" == "project.properties" ]; then
+				showProtectedFilesMessage
+			fi
+
+			if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktY29uZmxpY3QtbWFya2VyCg== | "$pathBase64" -d)" ]]; then
+				# Contemplar '<<<<<<< HEAD' (commit) e '<<<<<<< Updated upstream' (stash)
+				fileWithConflictMarker="$(git grep -a -i -w "^<<<<<<<" -- "$filePath")"
+
+				if [ -n "$fileWithConflictMarker" ]; then
+					echo "$tagHookName $errorMessage"
+					echo "Nao eh permitido comitar um arquivo que contenha marcacao de conflitos!"
+					echo "Portanto, deve-se resolver as marcacoes (<<<<<<<, ======= e >>>>>>>) e tentar fazer o commit novamente."
+					echo "Arquivo: $filePath"
+					echo "$helpMessageGCS"
+					exit 1
+				fi
+			fi
+		done <<< "$listFiles"
+
+		echo ""
+	fi
+fi
+
+if [ -f "$(dirname "$0")/husky.sh" ]; then
+	. "$(dirname "$0")/husky.sh"
+fi
