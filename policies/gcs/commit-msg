@@ -40,14 +40,6 @@ else
 	pathHead="head"
 fi
 
-if [ -d "/C/Program Files/Git/mingw64/bin/" ]; then
-	pathCurl="/C/Program Files/Git/mingw64/bin/curl"
-elif [ -d "/C/Program Files (x86)/Git/mingw64/bin/" ]; then
-	pathCurl="/C/Program Files (x86)/Git/mingw64/bin/curl"
-else
-	pathCurl="curl"
-fi
-
 errorMessage="ERRO: "
 warningMessage="Aviso: "
 helpMessage="Em caso de duvidas, entre em contato com o coordenador da sua equipe."
@@ -58,10 +50,6 @@ main="main"
 #regexTaskIdMessage="#[0-9]+[ ][-][ ]+[a-zA-Z].{15,}+$"
 regexTaskIdMessage="#[0-9]+[ ][-][ ]+[a-zA-z0-9].{15,}.+$"
 regexBranchName="^$prefixBranch[ ][a-zA-Z0-9][a-zA-Z0-9]"
-regexScriptFlyway="^V[0-9]+_[0-9]+__.*.sql"
-regexScriptLiquibaseIntegrations="^[0-9]{3}\.yaml$"
-regexScriptLiquibaseTasks="^[0-9]{3}\.(sql|yaml)$|^[0-9]{3}_.+\.(sql|yaml)$"
-regexScriptLiquibaseReintegrations="^[0-9]{4}\.(sql|yaml)$"
 regexTaskId="#[0-9]+"
 regexBugfixBranch="^bugfix-[0-9]+$"
 regexFeatureBranch="^feature-[0-9]+$"
@@ -71,10 +59,6 @@ regexReleaseBranch="^release-[0-9]+-[0-9]+-[0-9]+$"
 regexPackageBranch="^package-arq-[0-9]+-[0-9]+-[0-9]+$"
 regexHotfixBranch="^hotfix-[0-9]+$"
 regexHotfixProductionBranch="^hotfix-production-[0-9]+$"
-#regexFeatureBranchSprint="^feature-[0-9]{4}-[0-9]{2}$|^feature-arq-[0-9]{4}-[0-9]{2}$"
-
-tipoCorrecao="Correção"
-tipoEvolucao="Evolução"
 
 tagHookName="[commit-msg]"
 
@@ -143,25 +127,6 @@ if [ -n "$siagriGSKRepositoryEnvironmentVariable" ]; then
 			userSCM=true
 		fi
 	fi
-
-	if [ "$userSCM" == false ]; then
-		if [ "$siagriGSKInstalled" == true ]; then
-			echo "$tagHookName $warningMessage"
-			echo "Verificando se o usuario '$author' pertence ao 'grupo-gcs' no Azure DevOps..."
-
-			gsk_azure_api_group_member_exists "$author" e9447f45-0516-435d-b8b6-f4b6f236a3b8 --no-show-response -q
-
-			if [ "$?" -eq "0" ]; then
-				userSCM=true
-			fi
-
-			echo ""
-		else
-			echo "$tagHookName $warningMessage"
-			echo "Nao foi possivel verificar se o usuario '$author' pertence ao 'grupo-gcs', pois o SiagriGSK NAO esta instalado!"
-			echo ""
-		fi
-	fi
 fi
 
 function setCommitMessage () {
@@ -169,15 +134,6 @@ function setCommitMessage () {
 }
 
 setCommitMessage "$1"
-
-# Ao adicionar um repositorio, deve-se manter o ";" no final da string, para evitar resultado "falso-positivo"
-repositoriesTasksAzureDevOps=";"
-
-taskAzureDevOps=falsetaskAzureDevOps=false
-
-if [[ "$repositoriesTasksAzureDevOps" =~ "$repositoryName;" ]]; then
-	taskAzureDevOps=true
-fi
 
 # Ao adicionar um repositorio, deve-se manter o ";" no final da string, para evitar resultado "falso-positivo"
 repositoriesWorkflow=";"
@@ -211,7 +167,6 @@ function validarVersaoSiagriGSK () {
 				echo "Portanto, deve-se atualizar para a versao mais recente ($requiredVersionSiagriGSK), utilizando o comando '$updateCommand'."
 
 				if [ "$userSCM" == false ]; then
-					echo "Caso deseje mais informacoes, acesse: https://dev.azure.com/grupo-siagri/gcs/_wiki/wikis/gcs.wiki/19/Atualiza%C3%A7%C3%A3o"
 					echo "$helpMessageGCS"
 				fi
 
@@ -232,19 +187,6 @@ function showProtectedFilesMessage () {
 		echo "Arquivo: $filePath"
 		echo "$helpMessageGCS"
 		exit 1
-	fi
-}
-
-function validarTipoTarefa () {
-	pTarefa="$1"
-	pTipo="$2"
-
-	gsk_azure_api_task_key_value $pTarefa "System.WorkItemType" "$pTipo" --no-show-response -q
-
-	if [ "$?" -ne "0" ]; then
-		retornoValidarTipoTarefa=false
-	else
-		retornoValidarTipoTarefa=true
 	fi
 }
 
@@ -345,78 +287,6 @@ if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnkt
 				exit 1
 			fi
 		fi
-
-		if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktdGFzay1pZC11cmwK | "$pathBase64" -d)" ]]; then
-			if [ "$taskAzureDevOps" == true ]; then
-				if [ "$siagriGSKInstalled" == true ]; then
-					messageVerifyTask="Portanto, deve-se verificar o numero da tarefa e tentar fazer o commit novamente."
-					messageTagRedmine="Observacao: Caso seja uma tarefa do Redmine, deve-se utilizar a tag '$tagRedmine'."
-
-					if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktdGFzay10eXBlCg== | "$pathBase64" -d)" ]]; then
-						if [ "$validouNumeroTarefaBranchCorrente" == false ]; then
-							echo "$tagHookName $warningMessage"
-							echo "Verificando o tipo da tarefa no Azure DevOps..."
-
-							if [[ "$currentBranchName" =~ $regexBugfixBranch ]]; then
-								validarTipoTarefa "$taskId" "$tipoCorrecao"
-							elif [[ "$currentBranchName" =~ $regexFeatureBranch ]] || [[ "$currentBranchName" =~ $regexTrainingBranch ]]; then
-								validarTipoTarefa "$taskId" "$tipoEvolucao"
-							elif [[ "$currentBranchName" =~ $regexReleaseBranch ]] || [[ "$currentBranchName" =~ $regexHotfixBranch ]]; then
-								validarTipoTarefa "$taskId" "$tipoCorrecao"
-
-								if [ "$retornoValidarTipoTarefa" == false ]; then
-									validarTipoTarefa "$taskId" "$tipoEvolucao"
-								fi
-							else
-								validarTipoTarefa "$taskId" "$tipoEvolucao"
-
-								if [ "$retornoValidarTipoTarefa" == false ]; then
-									validarTipoTarefa "$taskId" "$tipoCorrecao"
-								fi
-							fi
-
-							if [ "$retornoValidarTipoTarefa" == false ]; then
-								echo "$tagHookName $errorMessage"
-								echo "NAO foi possivel localizar a tarefa atraves da API do Azure DevOps ou o tipo da tarefa eh incompativel com o branch corrente!"
-								echo "$messageVerifyTask"
-								echo "$messageTagRedmine"
-								echo "Tarefa: #$pTarefa"
-								echo "Branch: $currentBranchName" 
-								echo "$helpMessageGCS"
-								exit 1
-							else
-								echo ""
-							fi
-						fi
-					else
-						echo "$tagHookName $warningMessage"
-						echo "Verificando o numero da tarefa no Azure DevOps..."
-
-						gsk_azure_api_task_exists $taskId --no-show-response -q
-
-						if [ "$?" -ne "0" ]; then
-							echo "$tagHookName $errorMessage"
-							echo "Nao foi possivel localizar a tarefa atraves da API do Azure DevOps!"
-							echo "$messageVerifyTask"
-							echo "$messageTagRedmine"
-							echo "Tarefa: #$taskId"
-							echo "$helpMessageGCS"
-							exit 1
-						else
-							echo ""
-						fi
-					fi
-				else
-					echo "$tagHookName $errorMessage"
-					echo "Nao foi possivel verificar o numero da tarefa, atraves da API do Azure DevOps, pois o SiagriGSK NAO esta instalado!"
-					echo "Portanto, eh recomendavel instalar o SiagriGSK ou, sob sua responsabilidade, adicionar a tag '$(echo LS1uby12ZXJpZnktdGFzay1pZC11cmwK | "$pathBase64" -d)' na mensagem do commit."
-					echo "Observacao: Caso seja uma tarefa do Redmine, deve-se utilizar a tag '$tagRedmine'."
-					echo "Tarefa: #$taskId"
-					echo "$helpMessageGCS"
-					exit 1
-				fi
-			fi
-		fi
 	fi
 
 	if [ "$repositoryUsesWorkflow" == true ]; then
@@ -424,21 +294,9 @@ if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnkt
 			if [ "$currentBranchName" == "$main" ]; then
 				echo "$tagHookName $errorMessage"
 				echo "NAO eh permitido fazer um commit diretamente no branch '$main'!"
-				echo "Caso deseje mais informacoes, acesse: https://dev.azure.com/grupo-siagri/gcs/_wiki/wikis/gcs.wiki/217/Corre%C3%A7%C3%B5es-branch-main-(hotfix)#"
 				echo "$helpMessageGCS"
 				exit 1
 			fi
-		fi
-	fi
-
-	if [ "$siagriGSKInstalled" == true ]; then
-		isUrlAzureDevOps="$(is_url_azure_devops)"
-
-		if [ "$isUrlAzureDevOps" == true ]; then
-			repositoryUrl="$(get_url_azure_ssh_to_https "$repositoryUrl")"
-
-			projectAzure="$(basename $(dirname $(dirname "$repositoryUrl")))"
-			projectAzure="${projectAzure,,}"
 		fi
 	fi
 
