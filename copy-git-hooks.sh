@@ -1,8 +1,8 @@
 #!/bin/bash
 
 vScriptCopyFile="scripts/shell/copy-file.sh"
-vHookCommitMsg="policies/gcs/commit-msg"
-vHookPostCheckout="policies/gcs/post-checkout"
+vHookCommitMsg="policies/default/commit-msg"
+vHookPostCheckout="policies/default/post-checkout"
 
 if [ -f $vScriptCopyFile ]; then
 	if [ -f ".git" ]; then
