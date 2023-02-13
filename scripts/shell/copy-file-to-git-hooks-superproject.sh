@@ -1,13 +1,13 @@
 #!/bin/sh
 
-function copyFileToGitHooksSuperProjectValidate () {
+copyFileToGitHooksSuperProjectValidate () {
 	if [ -z "$1" ]; then
 		echo "Informe o arquivo que sera copiado!"
 		exit 1
 	fi
 }
 
-function copyFileToGitHooksSuperProjectExec () {
+copyFileToGitHooksSuperProjectExec () {
 	vFileName="$1"
 	vGitdirSubmodule="$2"
 

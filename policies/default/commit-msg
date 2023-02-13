@@ -129,7 +129,7 @@ if [ -n "$siagriGSKRepositoryEnvironmentVariable" ]; then
 	fi
 fi
 
-function setCommitMessage () {
+setCommitMessage () {
 	commitMessage="$(cat "$1")"
 }
 
@@ -144,7 +144,7 @@ else
 	repositoryUsesWorkflow=false
 fi
 
-function validarVersaoSiagriGSK () {
+validarVersaoSiagriGSK () {
 	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktc2lhZ3JpZ3NrLXZlcnNpb24K | "$pathBase64" -d)" ]]; then
 		if [ "$siagriGSKInstalled" == true ]; then
 			echo "$tagHookName $warningMessage"
@@ -180,7 +180,7 @@ function validarVersaoSiagriGSK () {
 	fi
 }
 
-function showProtectedFilesMessage () {
+showProtectedFilesMessage () {
 	if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcG9saWNpZXMtcHJvdGVjdGVkLWZpbGVzCg== | "$pathBase64" -d)" ]] ); then
 		echo "$tagHookName $errorMessage"
 		echo "Arquivo/diretorio protegido pelas politicas de seguranca da GCS!"

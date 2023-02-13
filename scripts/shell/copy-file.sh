@@ -1,6 +1,6 @@
 #!/bin/sh
 
-function copyFileValidate () {
+copyFileValidate () {
 	if [ -z "$1" ]; then
 		echo "Informe o arquivo que sera copiado!"
 		exit 1
@@ -27,7 +27,7 @@ function copyFileValidate () {
 	fi
 }
 
-function copyFileExec () {
+copyFileExec () {
 	vFileName="$1"
 	vDestinationDirectory="$2"
 
