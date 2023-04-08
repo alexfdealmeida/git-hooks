@@ -22,18 +22,18 @@ if ! [[ "$currentBranchName" =~ "(" ]]; then
 		echo "$tagHookName $mensagemAviso"
 		echo "Posicionando nos branches correspondentes dos submodules"
 		git submodule foreach --recursive "
-			branchSubmodule=\$(git config -f \$toplevel/.gitmodules submodule.\$name.branch);
+			branchSubmodule=\$(git config -f \"\$toplevel/.gitmodules\" submodule.\$name.branch);
 
 			if [ \"\$branchSubmodule\" = \".\" ]; then
-				cd \$toplevel;
+				cd \"\$toplevel\";
 				branchSuperproject=\$(git branch --show-current);
-				cd \$sm_path;
+				cd \"\$sm_path\";
 				
-				git -c core.hooksPath=/dev/null checkout \$branchSuperproject || echo Nao foi possivel posicionar no branch \$branchSuperproject no submodule \$sm_path!;
+				git -c core.hooksPath=/dev/null checkout \$branchSuperproject || echo Nao foi possivel posicionar no branch \$branchSuperproject no submodule \"\$sm_path\"!;
 			elif [ -n \"\$branchSubmodule\" ]; then
-				git -c core.hooksPath=/dev/null checkout \$branchSubmodule || echo Nao foi possivel posicionar no branch \$branchSubmodule no submodule \$sm_path!;
+				git -c core.hooksPath=/dev/null checkout \$branchSubmodule || echo Nao foi possivel posicionar no branch \$branchSubmodule no submodule \"\$sm_path\"!;
 			else
-				echo Nao foi possivel posicionar no branch correspondente no submodule \$sm_path, pois o branch nao foi especificado no arquivo .gitmodules do superprojeto!;
+				echo Nao foi possivel posicionar no branch correspondente no submodule \"\$sm_path\", pois o branch nao foi especificado no arquivo .gitmodules do superprojeto!;
 			fi;
 		"
 		echo ""
