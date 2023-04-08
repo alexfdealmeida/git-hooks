@@ -7,11 +7,6 @@ copyFileValidate () {
 	fi
 
 	if ! [ -f "$1" ]; then
-		echo "Arquivo invalido: '$1'!"
-		exit 1
-	fi
-
-	if ! [ -e "$1" ]; then
 		echo "Arquivo nao existe: '$1'!"
 		exit 1
 	fi
@@ -22,7 +17,7 @@ copyFileValidate () {
 	fi
 
 	if ! [ -d "$2" ]; then
-		echo "Diretorio destino invalido: '$2'!"
+		echo "Diretorio destino nao existe: '$2'!"
 		exit 1
 	fi
 }
@@ -32,9 +27,9 @@ copyFileExec () {
 	vDestinationDirectory="$2"
 
 	echo "Copiando o arquivo '$vFileName' para '$vDestinationDirectory'"
-	scp $vFileName $vDestinationDirectory
+	scp "$vFileName" "$vDestinationDirectory"
 }
 
-copyFileValidate $*
+copyFileValidate "$@"
 
-copyFileExec $*
+copyFileExec "$@"

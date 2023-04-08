@@ -20,19 +20,19 @@ copyFileToGitHooksSuperProjectExec () {
 	vRootDirectory="$(pwd)"
 	vScriptsDirectory="$vRootDirectory/git-hooks/scripts/shell"
 
-	cd $vScriptsDirectory
+	cd "$vScriptsDirectory"
 	#echo "Alterado diretorio raiz para o diretorio dos scripts '$vScriptsDirectory'"
 
-	./copy-file.sh $vFileName $vDestinationDirectory
-	if [ "$?" -ne "0" ]; then
+	./copy-file.sh "$vFileName" "$vDestinationDirectory"
+	if [ $? -ne 0 ]; then
 		echo "Nao foi possivel copiar o hook '$1' para o diretorio '$vDestinationDirectory'!"
 		#exit 1
 	fi
 
-	cd $vRootDirectory
+	cd "$vRootDirectory"
 	#echo "Alterado diretorio dos scripts para o diretorio raiz '$vRootDirectory'"
 }
 
-copyFileToGitHooksSuperProjectValidate $*
+copyFileToGitHooksSuperProjectValidate "$@"
 
-copyFileToGitHooksSuperProjectExec $*
+copyFileToGitHooksSuperProjectExec "$@"
