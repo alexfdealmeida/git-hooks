@@ -49,7 +49,7 @@ main="main"
 
 #regexTaskIdMessage="#[0-9]+[ ][-][ ]+[a-zA-Z].{15,}+$"
 regexTaskIdMessage="#[0-9]+[ ][-][ ]+[a-zA-z0-9].{15,}.+$"
-regexBranchName="^$prefixBranch[ ][a-zA-Z0-9][a-zA-Z0-9]"
+regexPrefixBranch="^$prefixBranch[ ][a-zA-Z0-9][a-zA-Z0-9]"
 regexTaskId="#[0-9]+"
 regexBugfixBranch="^bugfix-[0-9]+$"
 regexFeatureBranch="^feature-[0-9]+$"
@@ -64,7 +64,7 @@ tagHookName="[commit-msg]"
 
 currentBranchName="$(git branch | grep ^* | sed "s/*//" | sed "s/ //")"
 
-currentBranch="$prefixBranch $currentBranchName"
+prefixCurrentBranch="$prefixBranch $currentBranchName"
 
 repositoryUrl="$(git config --local --get remote.origin.url)"
 
@@ -192,7 +192,7 @@ showProtectedFilesMessage () {
 
 validarVersaoSiagriGSK
 
-if ! [[ "$commitMessage" =~ $regexBranchName ]]; then
+if ! [[ "$commitMessage" =~ $regexPrefixBranch ]]; then
 	echo "$tagHookName $warningMessage"
 	echo "Verificando nome do branch corrente..."
 	echo ""
@@ -201,9 +201,9 @@ if ! [[ "$commitMessage" =~ $regexBranchName ]]; then
 	#(no branch) - commit
 	#(no branch, rebasing stable) - rebase
 	#(HEAD detached at 9.9.9) - tag
-	if [[ "$currentBranch" =~ "$prefixBranch (" ]]; then
+	if [[ "$prefixCurrentBranch" =~ "$prefixBranch (" ]]; then
 		echo "$tagHookName $errorMessage"
-		echo "Nao foi possivel identificar o nome do branch corrente '$currentBranch'!"
+		echo "Nao foi possivel identificar o nome do branch corrente '$prefixCurrentBranch'!"
 		echo "Portanto, antes de fazer um commit, deve-se posicionar no branch desejado."
 		exit 1
 	fi
@@ -217,7 +217,7 @@ if ! [[ "$commitMessage" =~ $regexBranchName ]]; then
 		fi
 	fi
 
-	echo "$currentBranch""; $commitMessage" > "$1"
+	echo "$prefixCurrentBranch""; $commitMessage" > "$1"
 	setCommitMessage "$1"
 	echo "$tagHookName $warningMessage"
 	echo "Nome do branch corrente adicionado antes da mensagem do commit"
