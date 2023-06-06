@@ -17,14 +17,16 @@ if [ -f $vScriptCopyFile ]; then
 		vDestinationDirectory="./$vGitdirSubmodule/hooks/"
 	fi
 
+	chmod +x $vScriptCopyFile
+
 	./$vScriptCopyFile ./$vHookCommitMsg "$vDestinationDirectory"
-	if [ "$?" -ne "0" ]; then
+	if [ $? -ne 0 ]; then
 		echo "Nao foi possivel copiar o hook '$vHookCommitMsg' para o diretorio destino '$vDestinationDirectory'!"
 		#exit 1
 	fi
 
 	./$vScriptCopyFile ./$vHookPostCheckout "$vDestinationDirectory"
-	if [ "$?" -ne "0" ]; then
+	if [ $? -ne 0 ]; then
 		echo "Nao foi possivel copiar o hook '$vHookPostCheckout' para o diretorio destino '$vDestinationDirectory'!"
 		#exit 1
 	fi
