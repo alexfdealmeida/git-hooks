@@ -23,6 +23,7 @@ copyFileToGitHooksSuperProjectExec () {
 	cd "$vScriptsDirectory"
 	#echo "Alterado diretorio raiz para o diretorio dos scripts '$vScriptsDirectory'"
 
+	chmod +x copy-file.sh
 	./copy-file.sh "$vFileName" "$vDestinationDirectory"
 	if [ $? -ne 0 ]; then
 		echo "Nao foi possivel copiar o hook '$1' para o diretorio '$vDestinationDirectory'!"
