@@ -38,53 +38,55 @@ if ! [[ "$currentBranchName" =~ "(" ]]; then
 		"
 		echo ""
 
-		siagriGSKEnvironmentVariable=$SiagriGSK
+		if ! [[ "$(pwd)" =~ ^\/\/wsl\.localhost\/ ]]; then
+			siagriGSKEnvironmentVariable=$SiagriGSK
 
-		siagriGSKInstalled=false
+			siagriGSKInstalled=false
 
-		if [ -n "$siagriGSKEnvironmentVariable" ]; then
-			searchReturn="$(type gsk)"
+			if [ -n "$siagriGSKEnvironmentVariable" ]; then
+				searchReturn="$(type gsk)"
 
-			if [ "$?" -eq "0" ]; then
-				siagriGSKInstalled=true
+				if [ "$?" -eq "0" ]; then
+					siagriGSKInstalled=true
+				fi
 			fi
-		fi
 
-		if [ "$siagriGSKInstalled" = true ]; then
-			echo "$tagHookName $mensagemAviso"
-			echo "Verificando branch corrente nos submodules que rastreiam o superprojeto..."
+			if [ "$siagriGSKInstalled" = true ]; then
+				echo "$tagHookName $mensagemAviso"
+				echo "Verificando branch corrente nos submodules que rastreiam o superprojeto..."
 
-			listaSubmodules="$(gsk_show_submodules_path --only-tracking-branch)"
+				listaSubmodules="$(gsk_show_submodules_path --only-tracking-branch)"
 
-			if [ -n "${listaSubmodules[*]}" ]; then
-				vDiretorioCorrente="$(show_current_directory)"
-				vNomeBranchSuperprojeto="$(gsk_show_current_branch_name)"
+				if [ -n "${listaSubmodules[*]}" ]; then
+					vDiretorioCorrente="$(show_current_directory)"
+					vNomeBranchSuperprojeto="$(gsk_show_current_branch_name)"
 
-				for path in ${listaSubmodules[*]}; do
-					vDiretorioSubmodule="$vDiretorioCorrente/$path"
+					for path in ${listaSubmodules[*]}; do
+						vDiretorioSubmodule="$vDiretorioCorrente/$path"
 
-					if [ -f "$vDiretorioSubmodule/.git" ]; then
-						if [ -d "$vDiretorioSubmodule" ]; then
-							cd "$vDiretorioSubmodule"
+						if [ -f "$vDiretorioSubmodule/.git" ]; then
+							if [ -d "$vDiretorioSubmodule" ]; then
+								cd "$vDiretorioSubmodule"
 
-							vNomeBranchSubmodule="$(gsk_show_current_branch_name)"
+								vNomeBranchSubmodule="$(gsk_show_current_branch_name)"
 
-							if [ "$vNomeBranchSuperprojeto" != "$vNomeBranchSubmodule" ]; then
-								erro "Nao foi possivel posicionar no branch '$vNomeBranchSuperprojeto' no submodule '$path'!"
-								gsk_status
+								if [ "$vNomeBranchSuperprojeto" != "$vNomeBranchSubmodule" ]; then
+									erro "Nao foi possivel posicionar no branch '$vNomeBranchSuperprojeto' no submodule '$path'!"
+									gsk_status
+								fi
+							else
+								alerta "Nao foi possivel verificar o branch corrente no submodule '$path'! \nPois, o diretorio nao foi localizado: '$vDiretorioSubmodule'"
 							fi
 						else
-							alerta "Nao foi possivel verificar o branch corrente no submodule '$path'! \nPois, o diretorio nao foi localizado: '$vDiretorioSubmodule'"
+							alerta "O submodule '$path' nao foi inicializado!"
 						fi
-					else
-						alerta "O submodule '$path' nao foi inicializado!"
-					fi
-				done
+					done
 
-				cd "$vDiretorioCorrente"
+					cd "$vDiretorioCorrente"
+				fi
+
+				echo ""
 			fi
-
-			echo ""
 		fi
 	fi
 else
