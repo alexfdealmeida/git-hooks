@@ -64,13 +64,17 @@ if ! [[ "$currentBranchName" =~ "(" ]]; then
 					vDiretorioSubmodule="$vDiretorioCorrente/$path"
 
 					if [ -f "$vDiretorioSubmodule/.git" ]; then
-						cd "$vDiretorioSubmodule"
+						if [ -d "$vDiretorioSubmodule" ]; then
+							cd "$vDiretorioSubmodule"
 
-						vNomeBranchSubmodule="$(gsk_show_current_branch_name)"
+							vNomeBranchSubmodule="$(gsk_show_current_branch_name)"
 
-						if [ "$vNomeBranchSuperprojeto" != "$vNomeBranchSubmodule" ]; then
-							erro "Nao foi possivel posicionar no branch '$vNomeBranchSuperprojeto' no submodule '$path'!"
-							gsk_status
+							if [ "$vNomeBranchSuperprojeto" != "$vNomeBranchSubmodule" ]; then
+								erro "Nao foi possivel posicionar no branch '$vNomeBranchSuperprojeto' no submodule '$path'!"
+								gsk_status
+							fi
+						else
+							alerta "Nao foi possivel verificar o branch corrente no submodule '$path'! \nPois, o diretorio nao foi localizado: '$vDiretorioSubmodule'"
 						fi
 					else
 						alerta "O submodule '$path' nao foi inicializado!"
