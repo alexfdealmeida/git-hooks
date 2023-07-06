@@ -1,0 +1,13 @@
+#!/bin/sh
+
+if [[ "$(pwd)" =~ ^//wsl.localhost/ ]]; then
+	isDirectoryWslLocalhost=true
+else
+	isDirectoryWslLocalhost=false
+fi
+
+if [ "$isDirectoryWslLocalhost" == false ]; then
+	. "$(dirname "$0")/husky.sh"
+else
+	[ -f "copy-git-hooks.sh" ] && chmod +x copy-git-hooks.sh && ./copy-git-hooks.sh --update-only-git-hooks
+fi

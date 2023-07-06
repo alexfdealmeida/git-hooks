@@ -3,6 +3,7 @@
 vScriptCopyFile="scripts/shell/copy-file.sh"
 vHookCommitMsg="policies/default/commit-msg"
 vHookPostCheckout="policies/default/post-checkout"
+vHookPreCommit="policies/default/pre-commit"
 
 if [ -f $vScriptCopyFile ]; then
 	if [ -f ".git" ]; then
@@ -28,6 +29,12 @@ if [ -f $vScriptCopyFile ]; then
 	./$vScriptCopyFile ./$vHookPostCheckout "$vDestinationDirectory"
 	if [ $? -ne 0 ]; then
 		echo "Nao foi possivel copiar o hook '$vHookPostCheckout' para o diretorio destino '$vDestinationDirectory'!"
+		#exit 1
+	fi
+
+	./$vScriptCopyFile ./$vHookPreCommit "$vDestinationDirectory"
+	if [ $? -ne 0 ]; then
+		echo "Nao foi possivel copiar o hook '$vHookPreCommit' para o diretorio destino '$vDestinationDirectory'!"
 		#exit 1
 	fi
 fi
