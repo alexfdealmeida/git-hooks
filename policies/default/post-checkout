@@ -5,6 +5,12 @@ tagHookName="[post-checkout]"
 vFileGitModules=".gitmodules"
 vCommandGitFetch="git fetch --recurse-submodules --prune"
 
+if [[ "$(pwd)" =~ ^\/\/wsl\.localhost\/ ]]; then
+	isDirectoryWslLocalhost=true
+else
+	isDirectoryWslLocalhost=false
+fi
+
 currentBranchName="$(git branch | grep ^* | sed "s/*//" | sed "s/ //")"
 
 if ! [[ "$currentBranchName" =~ "(" ]]; then
@@ -38,7 +44,7 @@ if ! [[ "$currentBranchName" =~ "(" ]]; then
 		"
 		echo ""
 
-		if ! [[ "$(pwd)" =~ ^\/\/wsl\.localhost\/ ]]; then
+		if [ "$isDirectoryWslLocalhost" == false ]; then
 			siagriGSKEnvironmentVariable=$SiagriGSK
 
 			siagriGSKInstalled=false
@@ -95,7 +101,11 @@ fi
 
 if [ -f "$(dirname "$0")/husky.sh" ]; then
 	if ! [[ "$currentBranchName" =~ "(no branch, rebasing" ]]; then
-		. "$(dirname "$0")/husky.sh"
+		if [ "$isDirectoryWslLocalhost" == false ]; then
+			. "$(dirname "$0")/husky.sh"
+		else
+			[ -f "copy-git-hooks.sh" ] && chmod +x copy-git-hooks.sh && ./copy-git-hooks.sh --update-only-git-hooks
+		fi
 	else
 		echo "$tagHookName husky > Skipped: $currentBranchName"
 	fi
