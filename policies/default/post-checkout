@@ -1,21 +1,17 @@
 #!/bin/sh
 
-mensagemAviso="Aviso: "
 tagHookName="[post-checkout]"
+warningMessage="info: "
+skippedMessage="skipped: "
+copyGitHooks="copy-git-hooks.sh"
 vFileGitModules=".gitmodules"
 vCommandGitFetch="git fetch --recurse-submodules --prune"
-
-if [[ "$(pwd)" =~ ^\/\/wsl\.localhost\/ ]]; then
-	isDirectoryWslLocalhost=true
-else
-	isDirectoryWslLocalhost=false
-fi
 
 currentBranchName="$(git branch | grep ^* | sed "s/*//" | sed "s/ //")"
 
 if ! [[ "$currentBranchName" =~ "(" ]]; then
 	if [ -f $vFileGitModules ]; then
-		echo "$tagHookName $mensagemAviso"
+		echo "$tagHookName $warningMessage"
 		echo "Atualizando referencias locais com o repositorio remoto: '$vCommandGitFetch'"
 		$vCommandGitFetch
 
@@ -25,7 +21,7 @@ if ! [[ "$currentBranchName" =~ "(" ]]; then
 		
 		echo ""
 
-		echo "$tagHookName $mensagemAviso"
+		echo "$tagHookName $warningMessage"
 		echo "Posicionando nos branches correspondentes dos submodules"
 		git submodule foreach --recursive "
 			branchSubmodule=\$(git config -f \"\$toplevel/.gitmodules\" submodule.\$name.branch);
@@ -45,17 +41,9 @@ if ! [[ "$currentBranchName" =~ "(" ]]; then
 		echo ""
 	fi
 else
-	echo "$tagHookName Skipped: $currentBranchName"
+	echo "$tagHookName $skippedMessage: $currentBranchName"
+	echo ""
 fi
 
-if [ -f "$(dirname "$0")/husky.sh" ]; then
-	if ! [[ "$currentBranchName" =~ "(no branch, rebasing" ]]; then
-		if [ "$isDirectoryWslLocalhost" == false ]; then
-			. "$(dirname "$0")/husky.sh"
-		else
-			[ -f "copy-git-hooks.sh" ] && chmod +x copy-git-hooks.sh && ./copy-git-hooks.sh --update-only-git-hooks
-		fi
-	else
-		echo "$tagHookName husky > Skipped: $currentBranchName"
-	fi
-fi
+echo "$tagHookName $warningMessage"
+! [[ "$currentBranchName" =~ "(no branch, rebasing" ]] && [ -f "$copyGitHooks" ] && chmod +x "$copyGitHooks" && echo "Executando o script '$copyGitHooks'" && ./$copyGitHooks --update-only-git-hooks

@@ -1,13 +1,8 @@
 #!/bin/sh
 
-if [[ "$(pwd)" =~ ^//wsl.localhost/ ]]; then
-	isDirectoryWslLocalhost=true
-else
-	isDirectoryWslLocalhost=false
-fi
+tagHookName="[pre-commit]"
+warningMessage="info: "
+copyGitHooks="copy-git-hooks.sh"
 
-if [ "$isDirectoryWslLocalhost" == false ]; then
-	. "$(dirname "$0")/husky.sh"
-else
-	[ -f "copy-git-hooks.sh" ] && chmod +x copy-git-hooks.sh && ./copy-git-hooks.sh --update-only-git-hooks
-fi
+echo "$tagHookName $warningMessage"
+[ -f "$copyGitHooks" ] && chmod +x "$copyGitHooks" && echo "Executando o script '$copyGitHooks'" && ./$copyGitHooks --update-only-git-hooks

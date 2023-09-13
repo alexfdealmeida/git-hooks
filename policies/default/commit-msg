@@ -391,7 +391,3 @@ if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnkt
 		echo ""
 	fi
 fi
-
-if [ -f "$(dirname "$0")/husky.sh" ]; then
-	. "$(dirname "$0")/husky.sh"
-fi
