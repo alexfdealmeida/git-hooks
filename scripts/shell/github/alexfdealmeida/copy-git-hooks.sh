@@ -10,4 +10,6 @@ if [ -f $vScript ]; then
 	$vScript "./../../policies/default/commit-msg" "$vGitdirSubmodule"
 	$vScript "./../../policies/default/post-checkout" "$vGitdirSubmodule"
 	$vScript "./../../policies/default/pre-commit" "$vGitdirSubmodule"
+	#$vScript "./../../policies/default/pre-push" "$vGitdirSubmodule"
+	#$vScript "./../../policies/default/post-merge" "$vGitdirSubmodule"
 fi

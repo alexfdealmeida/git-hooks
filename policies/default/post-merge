@@ -1,0 +1,8 @@
+#!/bin/sh
+
+tagHookName="[post-merge]"
+warningMessage="info: "
+copyGitHooks="copy-git-hooks.sh"
+
+echo "$tagHookName $warningMessage"
+[ "$(basename $(pwd))" = "git-hooks" ] && [ -f "$copyGitHooks" ] && chmod +x "$copyGitHooks" && echo "Executando o script '$copyGitHooks'" && ./$copyGitHooks --update-only-git-hooks
