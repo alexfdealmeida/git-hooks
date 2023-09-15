@@ -48,7 +48,8 @@ prefixBranch="Branch:"
 main="main"
 
 #regexTaskIdMessage="#[0-9]+[ ][-][ ]+[a-zA-Z].{15,}+$"
-regexTaskIdMessage="#[0-9]+[ ][-][ ]+[a-zA-z0-9].{15,}.+$"
+#regexTaskIdMessage="#[0-9]+[ ][-][ ]+[a-zA-z0-9].{15,}.+$"
+regexTaskIdMessage="[;][ ]+#[0-9]+[ ][-][ ]+[a-zA-z0-9].{15,}.+$"
 regexPrefixBranch="^$prefixBranch[ ][a-zA-Z0-9]{2}"
 regexTaskId="#[0-9]+"
 regexBugfixBranch="^bugfix-[0-9]+$"
@@ -266,7 +267,7 @@ if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnkt
 
 			if ! [[ "$commitMessage" =~ $regexTaskIdMessage ]]; then
 				echo "$tagHookName $errorMessage"
-				echo "A mensagem do commit nao esta no padrao esperado!"
+				echo "A mensagem do commit NAO esta no padrao esperado!"
 				echo "Portanto, deve-se ajusta-la e tentar fazer o commit novamente."
 				echo "Exemplo: #TaskId - Mensagem... (a mensagem deve conter no minimo 15 caracteres)"
 				echo "Regex: $regexTaskIdMessage"
