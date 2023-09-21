@@ -46,4 +46,5 @@ else
 fi
 
 echo "$tagHookName $warningMessage"
-! [[ "$currentBranchName" =~ "(no branch, rebasing" ]] && [ -f "$copyGitHooks" ] && chmod +x "$copyGitHooks" && echo "Executando o script '$copyGitHooks'" && ./$copyGitHooks --update-only-git-hooks
+echo "Verificando pre-requisitos para atualizacao dos hooks"
+! [[ "$currentBranchName" =~ "(" ]] && [ -f "$copyGitHooks" ] && chmod +x "$copyGitHooks" && echo "Executando o script '$copyGitHooks'" && ./$copyGitHooks --update-only-git-hooks
