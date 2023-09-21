@@ -9,7 +9,13 @@ vCommandGitFetch="git fetch --recurse-submodules --prune"
 
 currentBranchName="$(git branch | grep ^* | sed "s/*//" | sed "s/ //")"
 
-if ! [[ "$currentBranchName" =~ "(" ]]; then
+isBranchValid=true
+
+if [[ "$currentBranchName" =~ "(" ]]; then
+	isBranchValid=false
+fi
+
+if [ "$isBranchValid" = true ]; then
 	if [ -f $vFileGitModules ]; then
 		echo "$tagHookName $warningMessage"
 		echo "Atualizando referencias locais com o repositorio remoto: '$vCommandGitFetch'"
@@ -47,4 +53,4 @@ fi
 
 echo "$tagHookName $warningMessage"
 echo "Verificando pre-requisitos para atualizacao dos hooks"
-! [[ "$currentBranchName" =~ "(" ]] && [ -f "$copyGitHooks" ] && chmod +x "$copyGitHooks" && echo "Executando o script '$copyGitHooks'" && ./$copyGitHooks --update-only-git-hooks
+[ "$isBranchValid" = true ] && [ -f "$copyGitHooks" ] && chmod +x "$copyGitHooks" && echo "Executando o script '$copyGitHooks'" && ./$copyGitHooks --update-only-git-hooks
