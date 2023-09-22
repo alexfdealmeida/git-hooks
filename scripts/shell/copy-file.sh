@@ -27,7 +27,7 @@ copyFileExec () {
 	vDestinationDirectory="$2"
 
 	echo "Copiando o arquivo '$vFileName' para '$vDestinationDirectory'"
-	scp "$vFileName" "$vDestinationDirectory"
+	cp -p "$vFileName" "$vDestinationDirectory"
 }
 
 copyFileValidate "$@"
