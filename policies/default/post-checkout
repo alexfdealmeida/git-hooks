@@ -2,12 +2,15 @@
 
 tagHookName="[post-checkout]"
 warningMessage="info: "
-skippedMessage="skipped: "
 copyGitHooks="copy-git-hooks.sh"
 vFileGitModules=".gitmodules"
 vCommandGitFetch="git fetch --recurse-submodules --prune"
 
 currentBranchName="$(git branch | grep ^* | sed "s/*//" | sed "s/ //")"
+
+echo "$tagHookName $warningMessage"
+echo "Current branch: $currentBranchName"
+echo ""
 
 isBranchValid=true
 
@@ -16,19 +19,23 @@ if [[ "$currentBranchName" =~ "(" ]]; then
 fi
 
 if [ "$isBranchValid" = true ]; then
+	echo "$tagHookName $warningMessage"
+	echo "Buscando referencias dos branches no repositorio remoto: '$vCommandGitFetch'"
+	$vCommandGitFetch
+
+	if [ "$?" -ne "0" ]; then
+		echo -e "\033[1;31mNAO foi possivel buscar as referencias dos branches no repositorio remoto!\033[0m"
+	fi
+	
+	echo ""
+
+	echo "$tagHookName $warningMessage"
+	echo "Verificando se ha submodule(s)"
+	echo ""
+
 	if [ -f $vFileGitModules ]; then
 		echo "$tagHookName $warningMessage"
-		echo "Atualizando referencias locais com o repositorio remoto: '$vCommandGitFetch'"
-		$vCommandGitFetch
-
-		if [ "$?" -ne "0" ]; then
-			echo -e "\033[1;31mNao foi possivel atualizar as referencias locais com o repositorio remoto\033[0m"
-		fi
-		
-		echo ""
-
-		echo "$tagHookName $warningMessage"
-		echo "Posicionando nos branches correspondentes dos submodules"
+		echo "Posicionando nos branches correspondentes dos submodules que rastreiam o branch do superprojeto"
 		git submodule foreach --recursive "
 			branchSubmodule=\$(git config -f \"\$toplevel/.gitmodules\" submodule.\$name.branch);
 
@@ -46,9 +53,6 @@ if [ "$isBranchValid" = true ]; then
 		"
 		echo ""
 	fi
-else
-	echo "$tagHookName $skippedMessage: $currentBranchName"
-	echo ""
 fi
 
 echo "$tagHookName $warningMessage"
