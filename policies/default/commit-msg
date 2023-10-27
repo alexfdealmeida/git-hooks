@@ -47,19 +47,24 @@ helpMessageGCS="Em caso de duvidas, entre em contato com a equipe de GCS."
 prefixBranch="Branch:"
 main="main"
 
-#regexTaskIdMessage="#[0-9]+[ ][-][ ]+[a-zA-Z].{15,}+$"
-#regexTaskIdMessage="#[0-9]+[ ][-][ ]+[a-zA-z0-9].{15,}.+$"
-regexTaskIdMessage="[;][ ]+#[0-9]+[ ][-][ ]+[a-zA-z0-9].{15,}.+$"
-regexPrefixBranch="^$prefixBranch[ ][a-zA-Z0-9]{2}"
-regexTaskId="#[0-9]+"
-regexBugfixBranch="^bugfix-[0-9]+$"
-regexFeatureBranch="^feature-[0-9]+$"
-regexTrainingBranch="^training-[0-9]+$"
-regexEpicBranch="^epic-[0-9]+$"
-regexReleaseBranch="^release-[0-9]+-[0-9]+-[0-9]+$"
-regexPackageBranch="^package-arq-[0-9]+-[0-9]+-[0-9]+$"
-regexHotfixBranch="^hotfix-[0-9]+$"
-regexHotfixProductionBranch="^hotfix-production-[0-9]+$"
+# RegEx
+#REGEX_TASK_ID_MESSAGE="#[0-9]+[ ][-][ ]+[a-zA-Z].{15,}+$"
+#REGEX_TASK_ID_MESSAGE="#[0-9]+[ ][-][ ]+[a-zA-z0-9].{15,}.+$"
+REGEX_TASK_ID_MESSAGE="[;][ ]+#[0-9]+[ ][-][ ]+[a-zA-z0-9].{15,}.+$"
+REGEX_PREFIX_BRANCH="^$prefixBranch[ ][a-zA-Z0-9]{2}"
+REGEX_TASK_ID="#[0-9]+"
+REGEX_BUGFIX_BRANCH="^bugfix-[0-9]+$"
+REGEX_FEATURE_BRANCH="^feature-[0-9]+$"
+REGEX_TRAINING_BRANCH="^training-[0-9]+$"
+REGEX_EPIC_BRANCH="^epic-[0-9]+$"
+REGEX_RELEASE_BRANCH="^release-[0-9]+-[0-9]+-[0-9]+$|^release-[0-9]+\.[0-9]+\.[0-9]+$"
+REGEX_PACKAGE_BRANCH="^package-arq-[0-9]+-[0-9]+-[0-9]+$||^package-arq-[0-9]+\.[0-9]+\.[0-9]+$|^package-arq-[0-9]+$"
+REGEX_HOTFIX_BRANCH="^hotfix-[0-9]+$"
+REGEX_HOTFIX_PRODUCTION_BRANCH="^hotfix-production-[0-9]+$"
+REGEX_HOTFIX_PRODUCTION_VERSION_BRANCH="^version\/[0-9]+\.[0-9]+\.[0-9]+\/production\/hotfix\/[0-9]+$"
+REGEX_HOTFIX_VERSION_BRANCH="^version\/[0-9]+\.[0-9]+\.[0-9]+\/main\/hotfix\/[0-9]+$"
+REGEX_PRODUCTION_VERSION="^version\/production\/[0-9]+\.[0-9]+\.[0-9]+$"
+REGEX_MAIN_VERSION="^version\/main\/[0-9]+\.[0-9]+\.[0-9]+$"
 
 tagHookName="[commit-msg]"
 
@@ -71,28 +76,18 @@ repositoryUrl="$(git config --local --get remote.origin.url)"
 
 repositoryName="$(basename -s .git "$repositoryUrl")"
 
-if [[ "$currentBranchName" =~ $regexBugfixBranch ]] || [[ "$currentBranchName" =~ $regexFeatureBranch ]] || [[ "$currentBranchName" =~ $regexTrainingBranch ]] || [[ "$currentBranchName" =~ $regexEpicBranch ]] || [[ "$currentBranchName" =~ $regexHotfixBranch ]]; then
+featureBranchEpic=false
+
+taskIdBranchName=""
+
+if [[ "$currentBranchName" =~ $REGEX_BUGFIX_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_FEATURE_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_TRAINING_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_EPIC_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_HOTFIX_PRODUCTION_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_HOTFIX_BRANCH ]]; then
 	taskIdBranchName="$(echo "$currentBranchName" | sed -e "s/[^0-9]//g")"
 
-	if [[ "$currentBranchName" =~ $regexEpicBranch ]]; then
+	if [[ "$currentBranchName" =~ $REGEX_EPIC_BRANCH ]]; then
 		featureBranchEpic=true
-	else
-		featureBranchEpic=false
 	fi
-else
-	taskIdBranchName=""
-fi
-
-#if [[ "$currentBranchName" =~ $regexFeatureBranchSprint ]] || [[ "$currentBranchName" =~ $regexFeatureBranch ]] || [[ "$currentBranchName" =~ $regexTrainingBranch ]] || 
-if [[ "$currentBranchName" =~ $regexFeatureBranch ]] || [[ "$currentBranchName" =~ $regexTrainingBranch ]] || 
-   [[ "$currentBranchName" =~ $regexEpicBranch ]] || [[ "$currentBranchName" =~ $regexBugfixBranch ]] || [[ "$currentBranchName" =~ $regexPackageBranch ]]; then
-	branchBaseDevelop=true
-elif [[ "$currentBranchName" =~ $regexReleaseBranch ]]; then
-	branchBaseRelease=true
-elif [[ "$currentBranchName" =~ $regexHotfixProductionBranch ]]; then
-	branchBaseProduction=true
-elif [[ "$currentBranchName" =~ $regexHotfixBranch ]] || [ "$currentBranchName" == "$main" ]; then
-	branchBaseMain=true
+elif [[ "$currentBranchName" =~ $REGEX_HOTFIX_VERSION_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_HOTFIX_PRODUCTION_VERSION_BRANCH ]]; then
+	taskIdBranchName="$(echo "$currentBranchName" | cut -d '/' -f 5)"
 fi
 
 siagriGSKEnvironmentVariable=$SiagriGSK
@@ -193,7 +188,7 @@ showProtectedFilesMessage () {
 
 validarVersaoSiagriGSK
 
-if ! [[ "$commitMessage" =~ $regexPrefixBranch ]]; then
+if ! [[ "$commitMessage" =~ $REGEX_PREFIX_BRANCH ]]; then
 	echo "$tagHookName $warningMessage"
 	echo "Verificando nome do branch corrente..."
 	echo ""
@@ -210,7 +205,7 @@ if ! [[ "$commitMessage" =~ $regexPrefixBranch ]]; then
 	fi
 
 	if [ -n "$taskIdBranchName" ] && [ "$featureBranchEpic" == false ]; then
-		if ! [[ "$commitMessage" =~ "#$taskIdBranchName" ]] && ! [[ "$commitMessage" =~ $regexTaskId ]]; then
+		if ! [[ "$commitMessage" =~ "#$taskIdBranchName" ]] && ! [[ "$commitMessage" =~ $REGEX_TASK_ID ]]; then
 			echo "#$taskIdBranchName"" - $commitMessage" > "$1"
 			echo "$tagHookName $warningMessage"
 			setCommitMessage "$1"
@@ -265,12 +260,12 @@ if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnkt
 			echo "Verificando se a mensagem do commit esta no padrao esperado..."
 			echo ""
 
-			if ! [[ "$commitMessage" =~ $regexTaskIdMessage ]]; then
+			if ! [[ "$commitMessage" =~ $REGEX_TASK_ID_MESSAGE ]]; then
 				echo "$tagHookName $errorMessage"
 				echo "A mensagem do commit NAO esta no padrao esperado!"
 				echo "Portanto, deve-se ajusta-la e tentar fazer o commit novamente."
 				echo "Exemplo: #TaskId - Mensagem... (a mensagem deve conter no minimo 15 caracteres)"
-				echo "Regex: $regexTaskIdMessage"
+				echo "Regex: $REGEX_TASK_ID_MESSAGE"
 				echo "$helpMessageGCS"
 				exit 1
 			fi
