@@ -6,4 +6,4 @@ copyGitHooks="copy-git-hooks.sh"
 
 echo "$tagHookName $warningMessage"
 echo "Verificando pre-requisitos para atualizacao dos hooks"
-[ -f "$copyGitHooks" ] && chmod +x "$copyGitHooks" && echo "Executando o script '$copyGitHooks'" && ./$copyGitHooks --update-only-git-hooks
+! [ -f "$copyGitHooks" ] && echo "Skipped" || ( chmod +x "$copyGitHooks" && echo "Executando o script '$copyGitHooks'" && ./$copyGitHooks --update-only-git-hooks )
