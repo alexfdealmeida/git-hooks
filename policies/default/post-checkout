@@ -13,9 +13,15 @@ echo "Current branch: $currentBranchName"
 echo ""
 
 isBranch=true
+rebasing=false
 
 if [[ "$currentBranchName" =~ "(" ]]; then
 	isBranch=false
+
+	# (no branch, rebasing branchName)
+	if [[ "$currentBranchName" =~ "rebasing" ]]; then
+		rebasing=true
+	fi
 fi
 
 if [ "$isBranch" = true ]; then
@@ -57,4 +63,4 @@ fi
 
 echo "$tagHookName $warningMessage"
 echo "Verificando pre-requisitos para atualizacao dos hooks"
-[ "$isBranch" = false ] && echo "Skipped" || ( [ -f "$copyGitHooks" ] && chmod +x "$copyGitHooks" && echo "Executando o script '$copyGitHooks'" && ./$copyGitHooks --update-only-git-hooks )
+[ "$rebasing" = true ] && echo "Skipped" || ( [ -f "$copyGitHooks" ] && chmod +x "$copyGitHooks" && echo "Executando o script '$copyGitHooks'" && ./$copyGitHooks --update-only-git-hooks )
