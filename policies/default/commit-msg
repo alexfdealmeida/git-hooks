@@ -195,7 +195,7 @@ showProtectedFilesMessage () {
 validarVersaoSiagriGSK
 
 echo "$tagHookName $warningMessage"
-echo "Verificando se o branch '$currentBranchName' corresponde um branch valido"
+echo "Verificando se o branch '$currentBranchName' corresponde a um branch valido"
 echo ""
 
 #Tratamento para contemplar as seguintes situacoes:
@@ -219,14 +219,14 @@ if ! [[ "$commitMessage" =~ $REGEX_PREFIX_BRANCH ]]; then
 			echo "#$taskIdBranchName"" - $commitMessage" > "$1"
 			echo "$tagHookName $warningMessage"
 			setCommitMessage "$1"
-			echo "Numero da tarefa adicionado antes da mensagem do commit"
+			echo "Adicionada a tarefa #$taskIdBranchName no inicio da mensagem do commit"
 		fi
 	fi
 
 	echo "$prefixCurrentBranch $commitMessage" > "$1"
 	setCommitMessage "$1"
 	echo "$tagHookName $warningMessage"
-	echo "Prefixo '$prefixCurrentBranch' adicionado na mensagem do commit"
+	echo "Adicionado o prefixo '$prefixCurrentBranch' na mensagem do commit"
 	echo "Mensagem atualizada:"
 	echo "$commitMessage"
 	echo ""
