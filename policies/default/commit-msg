@@ -74,13 +74,15 @@ tagHookName="[commit-msg]"
 
 currentBranchName="$(git branch | grep ^* | sed "s/*//" | sed "s/ //")"
 
-prefixCurrentBranch="$prefixBranch $currentBranchName"
+prefixCurrentBranch="$prefixBranch $currentBranchName;"
+
+commitMessagePattern="$prefixBranch branchName; #TaskId - Message"
 
 repositoryUrl="$(git config --local --get remote.origin.url)"
 
 repositoryName="$(basename -s .git "$repositoryUrl")"
 
-featureBranchEpic=false
+isEpicBranch=false
 
 taskIdBranchName=""
 
@@ -88,7 +90,7 @@ if [[ "$currentBranchName" =~ $REGEX_BUGFIX_BRANCH ]] || [[ "$currentBranchName"
 	taskIdBranchName="$(echo "$currentBranchName" | sed -e "s/[^0-9]//g")"
 
 	if [[ "$currentBranchName" =~ $REGEX_EPIC_BRANCH ]]; then
-		featureBranchEpic=true
+		isEpicBranch=true
 	fi
 elif [[ "$currentBranchName" =~ $REGEX_HOTFIX_VERSION_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_HOTFIX_PRODUCTION_VERSION_BRANCH ]]; then
 	taskIdBranchName="$(echo "$currentBranchName" | cut -d '/' -f 5)"
@@ -148,10 +150,10 @@ validarVersaoSiagriGSK () {
 	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktc2lhZ3JpZ3NrLXZlcnNpb24K | "$pathBase64" -d)" ]]; then
 		if [ "$siagriGSKInstalled" == true ]; then
 			echo "$tagHookName $warningMessage"
-			echo "Verificando versao do SiagriGSK..."
+			echo "Verificando a versao instalada do SiagriGSK"
 			echo ""
 
-			requiredVersionSiagriGSK="10.1.0"
+			requiredVersionSiagriGSK="14.4.0"
 			currentVersionSiagriGSK="$(gsk_version_short)"
 
 			if [ "$("$pathPrintf" "%s\n" "$requiredVersionSiagriGSK" "$currentVersionSiagriGSK" | "$pathSort" -V | "$pathHead" -n1)" != "$requiredVersionSiagriGSK" ]; then
@@ -192,23 +194,27 @@ showProtectedFilesMessage () {
 
 validarVersaoSiagriGSK
 
+echo "$tagHookName $warningMessage"
+echo "Verificando se o branch '$currentBranchName' corresponde um branch valido"
+echo ""
+
+#Tratamento para contemplar as seguintes situacoes:
+#(no branch) - commit
+#(no branch, rebasing stable) - rebase
+#(HEAD detached at 9.9.9) - tag
+if [[ "$currentBranchName" =~ "(" ]]; then
+	echo "$tagHookName $errorMessage"
+	echo "Branch invalido: '$currentBranchName'!"
+	echo "Portanto, deve-se posicionar em um branch valido antes de tentar fazer o commit novamente."
+	exit 1
+fi
+
+echo "$tagHookName $warningMessage"
+echo "Verificando se a mensagem do commit possui o prefixo '$prefixCurrentBranch'"
+echo ""
+
 if ! [[ "$commitMessage" =~ $REGEX_PREFIX_BRANCH ]]; then
-	echo "$tagHookName $warningMessage"
-	echo "Verificando nome do branch corrente..."
-	echo ""
-
-	#Tratamento para contemplar as seguintes situacoes:
-	#(no branch) - commit
-	#(no branch, rebasing stable) - rebase
-	#(HEAD detached at 9.9.9) - tag
-	if [[ "$prefixCurrentBranch" =~ "$prefixBranch (" ]]; then
-		echo "$tagHookName $errorMessage"
-		echo "Nao foi possivel identificar o nome do branch corrente '$prefixCurrentBranch'!"
-		echo "Portanto, antes de fazer um commit, deve-se posicionar no branch desejado."
-		exit 1
-	fi
-
-	if [ -n "$taskIdBranchName" ] && [ "$featureBranchEpic" == false ]; then
+	if [ -n "$taskIdBranchName" ] && [ "$isEpicBranch" == false ]; then
 		if ! [[ "$commitMessage" =~ "#$taskIdBranchName" ]] && ! [[ "$commitMessage" =~ $REGEX_TASK_ID ]]; then
 			echo "#$taskIdBranchName"" - $commitMessage" > "$1"
 			echo "$tagHookName $warningMessage"
@@ -217,74 +223,71 @@ if ! [[ "$commitMessage" =~ $REGEX_PREFIX_BRANCH ]]; then
 		fi
 	fi
 
-	echo "$prefixCurrentBranch""; $commitMessage" > "$1"
+	echo "$prefixCurrentBranch $commitMessage" > "$1"
 	setCommitMessage "$1"
 	echo "$tagHookName $warningMessage"
-	echo "Nome do branch corrente adicionado antes da mensagem do commit"
-	echo ""
-
-	echo "Mensagem do commit atualizada:"
-	echo "'$commitMessage'"
+	echo "Prefixo '$prefixCurrentBranch' adicionado na mensagem do commit"
+	echo "Mensagem atualizada:"
+	echo "$commitMessage"
 	echo ""
 elif ! [[ "$commitMessage" =~ ";" ]]; then
 	echo "$tagHookName $errorMessage"
-	echo "Informe o nome do branch antes da mensagem do commit!"
-	echo "Exemplo: '$prefixBranch nome-branch; #TaskId - Mensagem...'"
+	echo "O prefixo do branch informado na mensagem do commit esta invalido!"
+	echo "Mensagem atual:"
+	echo "$commitMessage"
+	echo "Exemplo: '$commitMessagePattern'"
 	exit 1
 fi
 
 if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcG9saWNpZXMtaG9vawo= | "$pathBase64" -d)" ]] ); then
 	taskId="$(echo $commitMessage | cut -d '#' -f 2 | cut -d '-' -f 1 | sed "s/ //g")"
 
-	validouNumeroTarefaBranchCorrente=false
 	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktbWVzc2FnZS1wYXR0ZXJuCg== | "$pathBase64" -d)" ]]; then
-		if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktdGFzay1pZC1icmFuY2gK | "$pathBase64" -d)" ]]; then
-			if [ -n "$taskIdBranchName" ] && [ "$featureBranchEpic" == false ]; then
+		if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktdGFzay1pZC1jb21taXQtbWVzc2FnZS1tYXRjaGVzLWJyYW5jaC1uYW1lCg== | "$pathBase64" -d)" ]]; then
+			if [ -n "$taskIdBranchName" ] && [ "$isEpicBranch" == false ]; then
 				echo "$tagHookName $warningMessage"
-				echo "Verificando se o numero da tarefa esta de acordo com o branch corrente..."
+				echo "Verificando se a tarefa #$taskIdCommitMessage, informada na mensagem do commit, corresponde ao esperado no branch '$currentBranchName'"
 				echo ""
 
 				if ! [[ "$commitMessage" =~ "#$taskIdBranchName" ]]; then
 					echo "$tagHookName $errorMessage"
-					echo "O numero da tarefa NAO esta de acordo com o branch corrente!"
-					echo "Portanto, deve-se ajusta-la e tentar fazer o commit novamente."
-					echo "Branch corrente: $currentBranchName"
-					echo "Tarefa atual: #$taskId"
-					echo "Tarefa esperada: #$taskIdBranchName"
+					echo "O id da tarefa, informado na mensagem do commit, NAO esta de acordo com o nome do branch!"
+					echo "Portanto, deve-se ajusta-la antes de tentar fazer o commit novamente."
+					echo "Branch: $currentBranchName"
+					echo "Id da tarefa atual: #$taskIdCommitMessage"
+					echo "Id da tarefa esperado: #$taskIdBranchName"
 					echo "$helpMessageGCS"
 					exit 1
-				else
-					validouNumeroTarefaBranchCorrente=true
 				fi
 			fi
 		fi
 
 		if [ "$repositoryUsesWorkflow" == true ]; then
 			echo "$tagHookName $warningMessage"
-			echo "Verificando se a mensagem do commit esta no padrao esperado..."
+			echo "Verificando se a mensagem do commit esta no padrao esperado '$commitMessagePattern'"
 			echo ""
 
 			if ! [[ "$commitMessage" =~ $REGEX_TASK_ID_MESSAGE ]]; then
 				echo "$tagHookName $errorMessage"
 				echo "A mensagem do commit NAO esta no padrao esperado!"
-				echo "Portanto, deve-se ajusta-la e tentar fazer o commit novamente."
-				echo "Exemplo: #TaskId - Mensagem... (a mensagem deve conter no minimo 15 caracteres)"
+				echo "Portanto, deve-se ajusta-la antes de tentar fazer o commit novamente."
+				echo "Exemplo: #TaskId - Message (a mensagem deve conter no minimo 15 caracteres)"
 				echo "Regex: $REGEX_TASK_ID_MESSAGE"
 				echo "$helpMessageGCS"
 				exit 1
 			fi
 		fi
 
-		if [ "$featureBranchEpic" == true ]; then
+		if [ "$isEpicBranch" == true ]; then
 			echo "$tagHookName $warningMessage"
-			echo "Verificando se o numero da tarefa principal foi informado na mensagem do commit..."
+			echo "Verificando se o id da tarefa epica (parent) foi informado na mensagem do commit"
 			echo ""
 
 			if [[ "$commitMessage" =~ "#$taskIdBranchName" ]]; then
 				echo "$tagHookName $errorMessage"
-				echo "A tarefa principal NAO pode ser informada na mensagem do commit!"
-				echo "Portanto, deve-se informar apenas a subtarefa e tentar fazer o commit novamente."
-				echo "Tarefa: #$taskIdBranchName"
+				echo "A tarefa epica (parent) NAO pode ser informada na mensagem do commit!"
+				echo "Portanto, deve-se informar uma tarefa filha (child) antes de tentar fazer o commit novamente."
+				echo "Id da tarefa epica: #$taskIdBranchName"
 				echo "$helpMessageGCS"
 				exit 1
 			fi
@@ -380,7 +383,7 @@ if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnkt
 				if [ -n "$fileWithConflictMarker" ]; then
 					echo "$tagHookName $errorMessage"
 					echo "Nao eh permitido comitar um arquivo que contenha marcacao de conflitos!"
-					echo "Portanto, deve-se resolver as marcacoes (<<<<<<<, ======= e >>>>>>>) e tentar fazer o commit novamente."
+					echo "Portanto, deve-se resolver as marcacoes (<<<<<<<, ======= e >>>>>>>) antes de tentar fazer o commit novamente."
 					echo "Arquivo: $filePath"
 					echo "$helpMessageGCS"
 					exit 1
