@@ -192,6 +192,8 @@ showProtectedFilesMessage () {
 	fi
 }
 
+echo ""
+
 validarVersaoSiagriGSK
 
 echo "$tagHookName $warningMessage"
