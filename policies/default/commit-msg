@@ -46,6 +46,10 @@ helpMessage="Em caso de duvidas, entre em contato com o coordenador da sua equip
 helpMessageGCS="Em caso de duvidas, entre em contato com a equipe de GCS."
 prefixBranch="Branch:"
 
+# GSK
+GSK_PROFILE_SCM="[scm]"
+GSK_PROFILE_DEV="[dev]"
+
 # Branches
 MAIN="main"
 PRODUCTION="production"
@@ -96,36 +100,36 @@ elif [[ "$currentBranchName" =~ $REGEX_HOTFIX_VERSION_BRANCH ]] || [[ "$currentB
 	taskIdBranchName="$(echo "$currentBranchName" | cut -d '/' -f 5)"
 fi
 
-siagriGSKEnvironmentVariable=$SiagriGSK
-siagriGSKRepositoryEnvironmentVariable=$SiagriGSKRepository
-SiagriGSKSUserSCMEnvironmentVariable=$SiagriGSKSUserSCM
+gskInstalled=false
+gskProfile="[]"
 
-siagriGSKInstalled=false
+siagriGSKEnvironmentVariable=$SiagriGSK
 
 if [ -n "$siagriGSKEnvironmentVariable" ]; then
 	searchReturn="$(type gsk)"
 
-	if [ "$?" -eq "0" ]; then
-		siagriGSKInstalled=true
+	if [ $? -eq 0 ]; then
+		gskInstalled=true
+
+		siagriGSKRepositoryEnvironmentVariable=$SiagriGSKRepository
+
+		if [ -n "$siagriGSKRepositoryEnvironmentVariable" ]; then
+			gskProfile="$GSK_PROFILE_SCM"
+		else
+			gskProfile="$GSK_PROFILE_DEV"
+		fi
 	fi
 fi
 
 author="$(git var GIT_AUTHOR_IDENT | cut -d '<' -f 1 | sed 's/ //g')"
+
 userSCM=false
 
-#if [ "$author" == "$(echo YWxleC5hbG1laWRhCg== | "$pathBase64" -d)" ] || [ "$author" == "$(echo cGVkcm8uYmF0aXN0YQo= | "$pathBase64" -d)" ]; then
-#	userSCM=true
-#fi
+if [ "$gskProfile" == "$GSK_PROFILE_SCM" ]; then
+	SiagriGSKSUserSCMEnvironmentVariable=$SiagriGSKSUserSCM
 
-if [ -n "$siagriGSKRepositoryEnvironmentVariable" ]; then
 	if [ -n "$SiagriGSKSUserSCMEnvironmentVariable" ]; then
 		if [ "$author" == "$(echo $SiagriGSKSUserSCMEnvironmentVariable | "$pathBase64" -d)" ]; then
-			userSCM=true
-		fi
-	fi
-
-	if [ "$userSCM" == false ]; then
-		if [ "$(gsk_show_key_scm)" == "Z3NrLWtleS1zY20K" ]; then
 			userSCM=true
 		fi
 	fi
@@ -146,9 +150,9 @@ else
 	repositoryUsesWorkflow=false
 fi
 
-validarVersaoSiagriGSK () {
+validateSiagriGSKVersion () {
 	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktc2lhZ3JpZ3NrLXZlcnNpb24K | "$pathBase64" -d)" ]]; then
-		if [ "$siagriGSKInstalled" == true ]; then
+		if [ "$gskInstalled" == true ]; then
 			echo "$tagHookName $warningMessage"
 			echo "Verificando a versao instalada do SiagriGSK"
 			echo ""
@@ -158,17 +162,19 @@ validarVersaoSiagriGSK () {
 
 			if [ "$("$pathPrintf" "%s\n" "$requiredVersionSiagriGSK" "$currentVersionSiagriGSK" | "$pathSort" -V | "$pathHead" -n1)" != "$requiredVersionSiagriGSK" ]; then
 				echo "$tagHookName $errorMessage"
-				echo "A versao do SiagriGSK esta desatualizada ($currentVersionSiagriGSK)!"
+				echo "A versao do SiagriGSK esta desatualizada!"
+				echo "Versao corrente: $currentVersionSiagriGSK"
+				echo "Versao minima requerida: $requiredVersionSiagriGSK"
 
-				if [ "$userSCM" == false ]; then
+				if [ "$gskProfile" == "$GSK_PROFILE_DEV" ]; then
 					updateCommand="gsk update"
 				else
-					updateCommand="gsk update_gcs"
+					updateCommand="gsk update --gcs"
 				fi
 
-				echo "Portanto, deve-se atualizar para a versao mais recente ($requiredVersionSiagriGSK), utilizando o comando '$updateCommand'."
+				echo "Portanto, deve-se atualizar o SiagriGSK, atraves do comando '$updateCommand'."
 
-				if [ "$userSCM" == false ]; then
+				if [ "$gskProfile" == "$GSK_PROFILE_DEV" ]; then
 					echo "$helpMessageGCS"
 				fi
 
@@ -194,7 +200,7 @@ showProtectedFilesMessage () {
 
 echo ""
 
-validarVersaoSiagriGSK
+validateSiagriGSKVersion
 
 echo "$tagHookName $warningMessage"
 echo "Verificando se o branch '$currentBranchName' corresponde a um branch valido"
