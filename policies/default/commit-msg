@@ -157,7 +157,7 @@ validateSiagriGSKVersion () {
 			echo "Verificando a versao instalada do SiagriGSK"
 			echo ""
 
-			requiredVersionSiagriGSK="14.4.0"
+			requiredVersionSiagriGSK="15.0.9"
 			currentVersionSiagriGSK="$(gsk_version_short)"
 
 			if [ "$("$pathPrintf" "%s\n" "$requiredVersionSiagriGSK" "$currentVersionSiagriGSK" | "$pathSort" -V | "$pathHead" -n1)" != "$requiredVersionSiagriGSK" ]; then
@@ -180,6 +180,9 @@ validateSiagriGSKVersion () {
 
 				exit 1
 			fi
+
+			gsk_version
+			echo ""
 		else
 			echo "$tagHookName $warningMessage"
 			echo "Nao foi possivel verificar a versao do SiagriGSK, pois ele NAO esta instalado!"
