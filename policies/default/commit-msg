@@ -106,7 +106,7 @@ gskProfile="[]"
 siagriGSKEnvironmentVariable=$SiagriGSK
 
 if [ -n "$siagriGSKEnvironmentVariable" ]; then
-	searchReturn="$(type gsk)"
+	searchReturn="$(command -v gsk 2>&1)"
 
 	if [ $? -eq 0 ]; then
 		gskInstalled=true
@@ -154,15 +154,15 @@ validateSiagriGSKVersion () {
 	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktc2lhZ3JpZ3NrLXZlcnNpb24K | "$pathBase64" -d)" ]]; then
 		if [ "$gskInstalled" == true ]; then
 			echo "$tagHookName $warningMessage"
-			echo "Verificando a versao instalada do SiagriGSK"
+			echo "Verificando a versao instalada do GSK"
 			echo ""
 
-			requiredVersionSiagriGSK="15.0.9"
+			requiredVersionSiagriGSK="15.0.10"
 			currentVersionSiagriGSK="$(gsk_version_short)"
 
 			if [ "$("$pathPrintf" "%s\n" "$requiredVersionSiagriGSK" "$currentVersionSiagriGSK" | "$pathSort" -V | "$pathHead" -n1)" != "$requiredVersionSiagriGSK" ]; then
 				echo "$tagHookName $errorMessage"
-				echo "A versao do SiagriGSK esta desatualizada!"
+				echo "A versao do GSK esta DESATUALIZADA!"
 				echo "Versao corrente: $currentVersionSiagriGSK"
 				echo "Versao minima requerida: $requiredVersionSiagriGSK"
 
@@ -172,7 +172,7 @@ validateSiagriGSKVersion () {
 					updateCommand="gsk update --gcs"
 				fi
 
-				echo "Portanto, deve-se atualizar o SiagriGSK, atraves do comando '$updateCommand'."
+				echo "Portanto, deve-se atualiza-lo, utilizando o seguinte comando '$updateCommand'."
 
 				if [ "$gskProfile" == "$GSK_PROFILE_DEV" ]; then
 					echo "$helpMessageGCS"
@@ -185,7 +185,7 @@ validateSiagriGSKVersion () {
 			echo ""
 		else
 			echo "$tagHookName $warningMessage"
-			echo "Nao foi possivel verificar a versao do SiagriGSK, pois ele NAO esta instalado!"
+			echo "Nao foi possivel verificar a versao do GSK, pois ele NAO esta instalado!"
 			echo ""
 		fi
 	fi
