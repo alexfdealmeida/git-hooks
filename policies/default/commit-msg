@@ -230,6 +230,14 @@ elif ! [[ "$commitMessage" =~ ";" ]]; then
 	exit 1
 fi
 
+echo "$commitMessage [$repositoryName]" > "$1"
+setCommitMessage "$1"
+echo "$tagHookName $warningMessage"
+echo "Adicionado o nome do repositorio no final da mensagem do commit: '[$repositoryName]'"
+echo "Mensagem atualizada:"
+echo "$commitMessage"
+echo ""
+
 if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcG9saWNpZXMtaG9vawo= | "$pathBase64" -d)" ]] ); then
 	taskId="$(echo $commitMessage | cut -d '#' -f 2 | cut -d '-' -f 1 | sed "s/ //g")"
 
