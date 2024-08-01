@@ -149,7 +149,7 @@ validateSiagriGSKVersion () {
 			echo "Verificando a versao instalada do GSK"
 			echo ""
 
-			requiredVersionSiagriGSK="15.0.10"
+			requiredVersionSiagriGSK="16.0.3"
 			currentVersionSiagriGSK="$(gsk_version_short)"
 
 			if [ "$("$pathPrintf" "%s\n" "$requiredVersionSiagriGSK" "$currentVersionSiagriGSK" | "$pathSort" -V | "$pathHead" -n1)" != "$requiredVersionSiagriGSK" ]; then
