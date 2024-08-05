@@ -42,7 +42,7 @@ if [ "$isBranch" = true ]; then
 		echo "Fetching: '$vCommandGitFetch'"
 		$vCommandGitFetch
 
-		if [ "$?" -ne "0" ]; then
+		if [ $? -ne 0 ]; then
 			echo -e "\033[1;31mNAO foi possivel buscar as referencias dos branches no repositorio remoto!\033[0m"
 		fi
 		
