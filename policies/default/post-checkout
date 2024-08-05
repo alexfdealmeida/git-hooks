@@ -5,12 +5,24 @@ warningMessage="info: "
 copyGitHooks="copy-git-hooks.sh"
 vFileGitModules=".gitmodules"
 vCommandGitFetch="git fetch --recurse-submodules --prune"
+GSK_CHECKOUT_SUBMODULES="gsk_checkout_submodules"
+
+gskCheckoutSubmoduleExists=false
+
+searchReturn="$(command -v $GSK_CHECKOUT_SUBMODULES 2>&1)"
+
+if [ $? -eq 0 ]; then
+	gskCheckoutSubmoduleExists=true
+fi
 
 currentBranchName="$(git branch | grep ^* | sed "s/*//" | sed "s/ //")"
 
 echo "$tagHookName $warningMessage"
-echo "Current branch: $currentBranchName"
-echo ""
+
+if [ "$gskCheckoutSubmoduleExists" == false ]; then
+	echo "Current branch: $currentBranchName"
+	echo ""
+fi
 
 isBranch=true
 rebasing=false
@@ -25,39 +37,43 @@ if [[ "$currentBranchName" =~ "(" ]]; then
 fi
 
 if [ "$isBranch" = true ]; then
-	echo "$tagHookName $warningMessage"
-	echo "Fetching: '$vCommandGitFetch'"
-	$vCommandGitFetch
-
-	if [ "$?" -ne "0" ]; then
-		echo -e "\033[1;31mNAO foi possivel buscar as referencias dos branches no repositorio remoto!\033[0m"
-	fi
-	
-	echo ""
-
-	echo "$tagHookName $warningMessage"
-	echo "Checking for submodules"
-	echo ""
-
-	if [ -f $vFileGitModules ]; then
+	if [ "$gskCheckoutSubmoduleExists" == false ]; then
 		echo "$tagHookName $warningMessage"
-		echo "Checking out the submodules"
-		git submodule foreach --recursive "
-			branchSubmodule=\$(git config -f \"\$toplevel/.gitmodules\" submodule.\$name.branch);
+		echo "Fetching: '$vCommandGitFetch'"
+		$vCommandGitFetch
 
-			if [ \"\$branchSubmodule\" = \".\" ]; then
-				cd \"\$toplevel\";
-				branchSuperproject=\$(git branch --show-current);
-				cd \"\$sm_path\";
-				
-				git -c core.hooksPath=/dev/null checkout \$branchSuperproject || echo Nao foi possivel posicionar no branch \$branchSuperproject no submodule \"\$sm_path\"!;
-			elif [ -n \"\$branchSubmodule\" ]; then
-				git -c core.hooksPath=/dev/null checkout \$branchSubmodule || echo Nao foi possivel posicionar no branch \$branchSubmodule no submodule \"\$sm_path\"!;
-			else
-				echo Nao foi possivel posicionar no branch correspondente no submodule \"\$sm_path\", pois o branch nao foi especificado no arquivo .gitmodules do superprojeto!;
-			fi;
-		"
+		if [ "$?" -ne "0" ]; then
+			echo -e "\033[1;31mNAO foi possivel buscar as referencias dos branches no repositorio remoto!\033[0m"
+		fi
+		
 		echo ""
+
+		echo "$tagHookName $warningMessage"
+		echo "Checking for submodules"
+		echo ""
+
+		if [ -f $vFileGitModules ]; then
+			echo "$tagHookName $warningMessage"
+			echo "Checking out the submodules"
+			git submodule foreach --recursive "
+				branchSubmodule=\$(git config -f \"\$toplevel/.gitmodules\" submodule.\$name.branch);
+
+				if [ \"\$branchSubmodule\" = \".\" ]; then
+					cd \"\$toplevel\";
+					branchSuperproject=\$(git branch --show-current);
+					cd \"\$sm_path\";
+					
+					git -c core.hooksPath=/dev/null checkout \$branchSuperproject || echo Nao foi possivel posicionar no branch \$branchSuperproject no submodule \"\$sm_path\"!;
+				elif [ -n \"\$branchSubmodule\" ]; then
+					git -c core.hooksPath=/dev/null checkout \$branchSubmodule || echo Nao foi possivel posicionar no branch \$branchSubmodule no submodule \"\$sm_path\"!;
+				else
+					echo Nao foi possivel posicionar no branch correspondente no submodule \"\$sm_path\", pois o branch nao foi especificado no arquivo .gitmodules do superprojeto!;
+				fi;
+			"
+			echo ""
+		fi
+	else
+		$GSK_CHECKOUT_SUBMODULES
 	fi
 fi
 
