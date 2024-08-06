@@ -42,9 +42,6 @@ if [ "$isBranch" = true ]; then
 			echo -e "\033[1;31mNAO foi possivel buscar as referencias dos branches no repositorio remoto!\033[0m"
 		fi
 
-		echo "$tagHookName $warningMessage"
-		echo "Checking for submodules"
-
 		if [ -f $vFileGitModules ]; then
 			echo "$tagHookName $warningMessage"
 			echo "Checking out the submodules"
