@@ -18,11 +18,8 @@ fi
 currentBranchName="$(git branch | grep ^* | sed "s/*//" | sed "s/ //")"
 
 echo "$tagHookName $warningMessage"
-
-if [ "$gskCheckoutSubmoduleExists" == false ]; then
-	echo "Current branch: $currentBranchName"
-	echo ""
-fi
+echo "Current branch: $currentBranchName"
+echo ""
 
 isBranch=true
 rebasing=false
@@ -73,7 +70,7 @@ if [ "$isBranch" = true ]; then
 			echo ""
 		fi
 	else
-		$GSK_CHECKOUT_SUBMODULES
+		$GSK_CHECKOUT_SUBMODULES --no-show-current-branch-message
 	fi
 fi
 
