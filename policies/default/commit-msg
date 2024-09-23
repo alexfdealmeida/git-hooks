@@ -103,7 +103,7 @@ isSCMProfile=false
 siagriGSKEnvironmentVariable=$SiagriGSK
 
 if [ -n "$siagriGSKEnvironmentVariable" ]; then
-	searchReturn="$(command -v gsk 2>&1)"
+	command -v gsk > /dev/null 2>&1
 
 	if [ $? -eq 0 ]; then
 		gskInstalled=true

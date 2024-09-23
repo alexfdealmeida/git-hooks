@@ -9,7 +9,7 @@ GSK_CHECKOUT_SUBMODULES="gsk_checkout_submodules"
 
 gskCheckoutSubmoduleExists=false
 
-searchReturn="$(command -v $GSK_CHECKOUT_SUBMODULES 2>&1)"
+command -v $GSK_CHECKOUT_SUBMODULES > /dev/null 2>&1
 
 if [ $? -eq 0 ]; then
 	gskCheckoutSubmoduleExists=true
