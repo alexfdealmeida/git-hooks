@@ -378,11 +378,11 @@ if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnkt
 
 			if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktY29uZmxpY3QtbWFya2VyCg== | "$pathBase64" -d)" ]]; then
 				# Contemplar '<<<<<<< HEAD' (commit) e '<<<<<<< Updated upstream' (stash)
-				fileWithConflictMarker="$(git grep -a -i -w "^<<<<<<<" -- "$filePath")"
+				fileWithConflictMarker="$(git grep --name-only -E "^(<<<<<<<|>>>>>>>)|^=======$" -- "$filePath")"
 
 				if [ -n "$fileWithConflictMarker" ]; then
 					echo "$tagHookName $errorMessage"
-					echo "Nao eh permitido comitar um arquivo que contenha marcacao de conflitos!"
+					echo "NAO eh permitido fazer commit de um arquivo que contenha marcacao de conflitos!"
 					echo "Portanto, deve-se resolver as marcacoes (<<<<<<<, ======= e >>>>>>>) antes de tentar fazer o commit novamente."
 					echo "Arquivo: $filePath"
 					echo "$helpMessageGCS"
