@@ -1,33 +1,37 @@
 #!/bin/sh
 
+ALERT="[alert]"
+INFO="[info]"
+ERROR="[ERROR]"
+
 copyFileValidate () {
 	if [ -z "$1" ]; then
-		echo "Informe o arquivo que sera copiado!"
+		echo "$ERROR Informe o arquivo que sera copiado!"
 		exit 1
 	fi
 
 	if ! [ -f "$1" ]; then
-		echo "Arquivo nao existe: '$1'!"
+		echo "$ERROR Arquivo nao existe: '$1'!"
 		exit 1
 	fi
 
 	if [ -z "$2" ]; then
-		echo "Informe o diretorio destino!"
+		echo "$ERROR Informe o diretorio destino!"
 		exit 1
 	fi
 
 	if ! [ -d "$2" ]; then
-		echo "Diretorio destino nao existe: '$2'!"
+		echo "$ERROR Diretorio destino nao existe: '$2'!"
 		exit 1
 	fi
 }
 
 copyFileExec () {
-	vFileName="$1"
-	vDestinationDirectory="$2"
+	pFileName="$1"
+	pDestinationDirectory="$2"
 
-	echo "Copiando o arquivo '$vFileName' para '$vDestinationDirectory'"
-	cp -p "$vFileName" "$vDestinationDirectory"
+	echo "$INFO Copying the file '$pFileName' to '$pDestinationDirectory'"
+	cp -p "$pFileName" "$pDestinationDirectory"
 }
 
 copyFileValidate "$@"

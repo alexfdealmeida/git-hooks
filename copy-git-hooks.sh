@@ -1,13 +1,18 @@
 #!/bin/bash
 
-vScriptCopyFile="scripts/shell/copy-file.sh"
-vHookCommitMsg="policies/default/commit-msg"
-vHookPostCheckout="policies/default/post-checkout"
-vHookPreCommit="policies/default/pre-commit"
-vHookPrePush="policies/default/pre-push"
-vHookPostMerge="policies/default/post-merge"
+ALERT="[alert]"
+INFO="[info]"
+ERROR="[ERROR]"
 
-if [ -f $vScriptCopyFile ]; then
+SCRIPT_COPY_FILE="scripts/shell/copy-file.sh"
+PATH_POLICIES_DEFAULT="policies/default"
+HOOK_COMMIT_MSG="$PATH_POLICIES_DEFAULT/commit-msg"
+HOOK_POST_CHECKOUT="$PATH_POLICIES_DEFAULT/post-checkout"
+HOOK_PRE_COMMIT="$PATH_POLICIES_DEFAULT/pre-commit"
+HOOK_PRE_PUSH="$PATH_POLICIES_DEFAULT/pre-push"
+HOOK_POST_MERGE="$PATH_POLICIES_DEFAULT/post-merge"
+
+if [ -f $SCRIPT_COPY_FILE ]; then
 	if [ -f ".git" ]; then
 		vGitdirSubmodule="$(cat .git | sed "s/gitdir://g" | sed "s/ //g")"
 	else
@@ -20,37 +25,36 @@ if [ -f $vScriptCopyFile ]; then
 		vDestinationDirectory="./$vGitdirSubmodule/hooks/"
 	fi
 
-	chmod +x $vScriptCopyFile
+	echo "$INFO Running the script '$(dirname "$0")/$(basename "$0")'"
+	chmod +x $SCRIPT_COPY_FILE
 
-	echo "Copiando os hooks no repositorio git-hooks '$(dirname "$0")/$(basename "$0")'..."
-
-	./$vScriptCopyFile ./$vHookCommitMsg "$vDestinationDirectory"
+	./$SCRIPT_COPY_FILE ./$HOOK_COMMIT_MSG "$vDestinationDirectory"
 	if [ $? -ne 0 ]; then
-		echo "Nao foi possivel copiar o hook '$vHookCommitMsg' para o diretorio destino '$vDestinationDirectory'!"
+		echo "$ALERT Nao foi possivel copiar o hook '$HOOK_COMMIT_MSG' para o diretorio destino '$vDestinationDirectory'!"
 		#exit 1
 	fi
 
-	./$vScriptCopyFile ./$vHookPostCheckout "$vDestinationDirectory"
+	./$SCRIPT_COPY_FILE ./$HOOK_POST_CHECKOUT "$vDestinationDirectory"
 	if [ $? -ne 0 ]; then
-		echo "Nao foi possivel copiar o hook '$vHookPostCheckout' para o diretorio destino '$vDestinationDirectory'!"
+		echo "$ALERT Nao foi possivel copiar o hook '$HOOK_POST_CHECKOUT' para o diretorio destino '$vDestinationDirectory'!"
 		#exit 1
 	fi
 
-	./$vScriptCopyFile ./$vHookPreCommit "$vDestinationDirectory"
+	./$SCRIPT_COPY_FILE ./$HOOK_PRE_COMMIT "$vDestinationDirectory"
 	if [ $? -ne 0 ]; then
-		echo "Nao foi possivel copiar o hook '$vHookPreCommit' para o diretorio destino '$vDestinationDirectory'!"
+		echo "$ALERT Nao foi possivel copiar o hook '$HOOK_PRE_COMMIT' para o diretorio destino '$vDestinationDirectory'!"
 		#exit 1
 	fi
 
-	./$vScriptCopyFile ./$vHookPrePush "$vDestinationDirectory"
+	./$SCRIPT_COPY_FILE ./$HOOK_PRE_PUSH "$vDestinationDirectory"
 	if [ $? -ne 0 ]; then
-		echo "Nao foi possivel copiar o hook '$vHookPrePush' para o diretorio destino '$vDestinationDirectory'!"
+		echo "$ALERT Nao foi possivel copiar o hook '$HOOK_PRE_PUSH' para o diretorio destino '$vDestinationDirectory'!"
 		#exit 1
 	fi
 
-	./$vScriptCopyFile ./$vHookPostMerge "$vDestinationDirectory"
+	./$SCRIPT_COPY_FILE ./$HOOK_POST_MERGE "$vDestinationDirectory"
 	if [ $? -ne 0 ]; then
-		echo "Nao foi possivel copiar o hook '$vHookPostMerge' para o diretorio destino '$vDestinationDirectory'!"
+		echo "$ALERT Nao foi possivel copiar o hook '$HOOK_POST_MERGE' para o diretorio destino '$vDestinationDirectory'!"
 		#exit 1
 	fi
 fi
