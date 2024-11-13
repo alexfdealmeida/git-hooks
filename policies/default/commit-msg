@@ -24,7 +24,40 @@ test "" = "$(grep '^Signed-off-by: ' "$1" |
 }
 
 tagHookName="[commit-msg]"
-tagHookVersion="1.0.0"
+tagHookVersion="1.0.1"
+
+# Branches
+BRANCH_MAIN="main"
+BRANCH_PRODUCTION="production"
+BRANCH_DEVELOP="develop"
+BRANCH_PREFIX="Branch:"
+
+# Messages
+MESSAGE_ERROR="ERROR: "
+MESSAGE_WARNING="info: "
+MESSAGE_HELP_SCM="Em caso de duvidas, entre em contato com a equipe de GCS."
+
+# RegEx
+# REGEX_TASK_ID_MESSAGE="#[0-9]+[ ][-][ ]+[a-zA-Z].{15,}+$"
+# REGEX_TASK_ID_MESSAGE="#[0-9]+[ ][-][ ]+[a-zA-z0-9].{15,}.+$"
+REGEX_TASK_ID_MESSAGE="[;][ ]+#[0-9]+[ ][-][ ]+[a-zA-z0-9].{15,}.+$"
+REGEX_PREFIX_BRANCH="^$BRANCH_PREFIX[ ][a-zA-Z0-9]{2}"
+REGEX_TASK_ID="#[0-9]+"
+REGEX_BUGFIX_BRANCH="^bugfix-[0-9]+$"
+REGEX_FEATURE_BRANCH="^feature-[0-9]+$"
+REGEX_TRAINING_BRANCH="^training-[0-9]+$"
+REGEX_EPIC_BRANCH="^epic-[0-9]+$"
+REGEX_RELEASE_BRANCH="^release-[0-9]+-[0-9]+-[0-9]+$|^release-[0-9]+\.[0-9]+\.[0-9]+$"
+REGEX_PACKAGE_BRANCH="^package-arq-[0-9]+-[0-9]+-[0-9]+$|^package-arq-[0-9]+\.[0-9]+\.[0-9]+$|^package-arq-[0-9]+$"
+REGEX_HOTFIX_BRANCH="^hotfix-[0-9]+$"
+REGEX_HOTFIX_PRODUCTION_BRANCH="^hotfix-production-[0-9]+$"
+REGEX_HOTFIX_PRODUCTION_VERSION_BRANCH="^version\/[0-9]+\.[0-9]+\.[0-9]+\/production\/hotfix\/[0-9]+$"
+REGEX_HOTFIX_VERSION_BRANCH="^version\/[0-9]+\.[0-9]+\.[0-9]+\/main\/hotfix\/[0-9]+$"
+REGEX_PRODUCTION_VERSION="^version\/production\/[0-9]+\.[0-9]+\.[0-9]+$"
+REGEX_MAIN_VERSION="^version\/main\/[0-9]+\.[0-9]+\.[0-9]+$"
+
+# Required versions
+REQUIRED_VERSION_GSK="16.0.5"
 
 if [ -d "/C/Program Files/Git/usr/bin/" ]; then
 	pathBase64="/C/Program Files/Git/usr/bin/base64"
@@ -43,48 +76,20 @@ else
 	pathHead="head"
 fi
 
-errorMessage="ERROR: "
-warningMessage="info: "
-helpMessage="Em caso de duvidas, entre em contato com o coordenador da sua equipe."
-helpMessageGCS="Em caso de duvidas, entre em contato com a equipe de GCS."
-prefixBranch="Branch:"
-
-# Branches
-MAIN="main"
-PRODUCTION="production"
-DEVELOP="develop"
-
-# RegEx
-#REGEX_TASK_ID_MESSAGE="#[0-9]+[ ][-][ ]+[a-zA-Z].{15,}+$"
-#REGEX_TASK_ID_MESSAGE="#[0-9]+[ ][-][ ]+[a-zA-z0-9].{15,}.+$"
-REGEX_TASK_ID_MESSAGE="[;][ ]+#[0-9]+[ ][-][ ]+[a-zA-z0-9].{15,}.+$"
-REGEX_PREFIX_BRANCH="^$prefixBranch[ ][a-zA-Z0-9]{2}"
-REGEX_TASK_ID="#[0-9]+"
-REGEX_BUGFIX_BRANCH="^bugfix-[0-9]+$"
-REGEX_FEATURE_BRANCH="^feature-[0-9]+$"
-REGEX_TRAINING_BRANCH="^training-[0-9]+$"
-REGEX_EPIC_BRANCH="^epic-[0-9]+$"
-REGEX_RELEASE_BRANCH="^release-[0-9]+-[0-9]+-[0-9]+$|^release-[0-9]+\.[0-9]+\.[0-9]+$"
-REGEX_PACKAGE_BRANCH="^package-arq-[0-9]+-[0-9]+-[0-9]+$|^package-arq-[0-9]+\.[0-9]+\.[0-9]+$|^package-arq-[0-9]+$"
-REGEX_HOTFIX_BRANCH="^hotfix-[0-9]+$"
-REGEX_HOTFIX_PRODUCTION_BRANCH="^hotfix-production-[0-9]+$"
-REGEX_HOTFIX_PRODUCTION_VERSION_BRANCH="^version\/[0-9]+\.[0-9]+\.[0-9]+\/production\/hotfix\/[0-9]+$"
-REGEX_HOTFIX_VERSION_BRANCH="^version\/[0-9]+\.[0-9]+\.[0-9]+\/main\/hotfix\/[0-9]+$"
-REGEX_PRODUCTION_VERSION="^version\/production\/[0-9]+\.[0-9]+\.[0-9]+$"
-REGEX_MAIN_VERSION="^version\/main\/[0-9]+\.[0-9]+\.[0-9]+$"
-
 currentBranchName="$(git branch | sed -e '/^\*/!d' -e 's|*||' -e 's| ||')"
 
-prefixCurrentBranch="$prefixBranch $currentBranchName;"
+prefixCurrentBranch="$BRANCH_PREFIX $currentBranchName;"
 
-commitMessagePattern="$prefixBranch branchName; #TaskId - Message"
+commitMessagePattern="$BRANCH_PREFIX branchName; #TaskId - Message"
 
 repositoryUrl="$(git config --local --get remote.origin.url)"
 
 repositoryName="$(basename -s .git "$repositoryUrl")"
 
 isEpicBranch=false
-
+gskInstalled=false
+isSCMProfile=false
+userSCM=false
 taskIdBranchName=""
 
 if [[ "$currentBranchName" =~ $REGEX_BUGFIX_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_FEATURE_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_TRAINING_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_EPIC_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_HOTFIX_PRODUCTION_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_HOTFIX_BRANCH ]]; then
@@ -97,12 +102,9 @@ elif [[ "$currentBranchName" =~ $REGEX_HOTFIX_VERSION_BRANCH ]] || [[ "$currentB
 	taskIdBranchName="$(echo "$currentBranchName" | cut -d '/' -f 5)"
 fi
 
-gskInstalled=false
-isSCMProfile=false
+gskEnvironmentVariable=$SiagriGSK
 
-siagriGSKEnvironmentVariable=$SiagriGSK
-
-if [ -n "$siagriGSKEnvironmentVariable" ]; then
+if [ -n "$gskEnvironmentVariable" ]; then
 	command -v gsk > /dev/null 2>&1
 
 	if [ $? -eq 0 ]; then
@@ -114,8 +116,6 @@ fi
 
 #author="$(git var GIT_AUTHOR_IDENT | cut -d '<' -f 1 | sed 's/ //g')"
 author="$(git config --global --get user.name)"
-
-userSCM=false
 
 if [ "$isSCMProfile" == true ]; then
 	SiagriGSKSUserSCMEnvironmentVariable=$SiagriGSKSUserSCM
@@ -142,30 +142,29 @@ else
 	repositoryUsesWorkflow=false
 fi
 
-validateSiagriGSKVersion () {
+validateGSKVersion () {
 	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktc2lhZ3JpZ3NrLXZlcnNpb24K | "$pathBase64" -d)" ]]; then
 		if [ "$gskInstalled" == true ]; then
-			echo "$tagHookName $warningMessage"
+			echo "$tagHookName $MESSAGE_WARNING"
 			echo "Verificando a versao instalada do GSK"
 			echo ""
 
-			requiredVersionSiagriGSK="16.0.3"
-			currentVersionSiagriGSK="$(gsk_version_short)"
+			currentVersionGSK="$(gsk_version_short)"
 
-			if [ "$("$pathPrintf" "%s\n" "$requiredVersionSiagriGSK" "$currentVersionSiagriGSK" | "$pathSort" -V | "$pathHead" -n1)" != "$requiredVersionSiagriGSK" ]; then
-				echo "$tagHookName $errorMessage"
+			if [ "$("$pathPrintf" "%s\n" "$REQUIRED_VERSION_GSK" "$currentVersionGSK" | "$pathSort" -V | "$pathHead" -n1)" != "$REQUIRED_VERSION_GSK" ]; then
+				echo "$tagHookName $MESSAGE_ERROR"
 				echo "A versao do GSK esta DESATUALIZADA!"
-				echo "Versao corrente: $currentVersionSiagriGSK"
-				echo "Versao minima requerida: $requiredVersionSiagriGSK"
+				echo "Versao corrente: $currentVersionGSK"
+				echo "Versao minima requerida: $REQUIRED_VERSION_GSK"
 				echo "Portanto, deve-se atualiza-lo, utilizando o seguinte comando: 'gsk update'."
-				echo "$helpMessageGCS"
+				echo "$MESSAGE_HELP_SCM"
 				exit 1
 			fi
 
 			gsk_version
 			echo ""
 		else
-			echo "$tagHookName $warningMessage"
+			echo "$tagHookName $MESSAGE_WARNING"
 			echo "Nao foi possivel verificar a versao do GSK, pois ele NAO esta instalado!"
 			echo ""
 		fi
@@ -174,19 +173,19 @@ validateSiagriGSKVersion () {
 
 showProtectedFilesMessage () {
 	if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcG9saWNpZXMtcHJvdGVjdGVkLWZpbGVzCg== | "$pathBase64" -d)" ]] ); then
-		echo "$tagHookName $errorMessage"
+		echo "$tagHookName $MESSAGE_ERROR"
 		echo "Arquivo/diretorio protegido pelas politicas de seguranca da GCS!"
 		echo "Arquivo: $filePath"
-		echo "$helpMessageGCS"
+		echo "$MESSAGE_HELP_SCM"
 		exit 1
 	fi
 }
 
 echo ""
 
-validateSiagriGSKVersion
+validateGSKVersion
 
-echo "$tagHookName $warningMessage"
+echo "$tagHookName $MESSAGE_WARNING"
 echo "Verificando se o branch '$currentBranchName' corresponde a um branch valido"
 echo ""
 
@@ -195,13 +194,13 @@ echo ""
 #(no branch, rebasing stable) - rebase
 #(HEAD detached at 9.9.9) - tag
 if [[ "$currentBranchName" =~ "(" ]]; then
-	echo "$tagHookName $errorMessage"
+	echo "$tagHookName $MESSAGE_ERROR"
 	echo "Branch invalido: '$currentBranchName'!"
 	echo "Portanto, deve-se posicionar em um branch valido antes de tentar fazer o commit novamente."
 	exit 1
 fi
 
-echo "$tagHookName $warningMessage"
+echo "$tagHookName $MESSAGE_WARNING"
 echo "Verificando se a mensagem do commit possui o prefixo '$prefixCurrentBranch'"
 echo ""
 
@@ -209,7 +208,7 @@ if ! [[ "$commitMessage" =~ $REGEX_PREFIX_BRANCH ]]; then
 	if [ -n "$taskIdBranchName" ] && [ "$isEpicBranch" == false ]; then
 		if ! [[ "$commitMessage" =~ "#$taskIdBranchName" ]] && ! [[ "$commitMessage" =~ $REGEX_TASK_ID ]]; then
 			echo "#$taskIdBranchName"" - $commitMessage" > "$1"
-			echo "$tagHookName $warningMessage"
+			echo "$tagHookName $MESSAGE_WARNING"
 			setCommitMessage "$1"
 			echo "Adicionada a tarefa #$taskIdBranchName no inicio da mensagem do commit"
 		fi
@@ -217,13 +216,13 @@ if ! [[ "$commitMessage" =~ $REGEX_PREFIX_BRANCH ]]; then
 
 	echo "$prefixCurrentBranch $commitMessage" > "$1"
 	setCommitMessage "$1"
-	echo "$tagHookName $warningMessage"
+	echo "$tagHookName $MESSAGE_WARNING"
 	echo "Adicionado o prefixo '$prefixCurrentBranch' na mensagem do commit"
 	echo "Mensagem atualizada:"
 	echo "$commitMessage"
 	echo ""
 elif ! [[ "$commitMessage" =~ ";" ]]; then
-	echo "$tagHookName $errorMessage"
+	echo "$tagHookName $MESSAGE_ERROR"
 	echo "O prefixo do branch informado na mensagem do commit esta invalido!"
 	echo "Mensagem atual:"
 	echo "$commitMessage"
@@ -233,7 +232,7 @@ fi
 
 # echo "$commitMessage [$repositoryName]" > "$1"
 # setCommitMessage "$1"
-# echo "$tagHookName $warningMessage"
+# echo "$tagHookName $MESSAGE_WARNING"
 # echo "Adicionado o nome do repositorio no final da mensagem do commit: '[$repositoryName]'"
 # echo "Mensagem atualizada:"
 # echo "$commitMessage"
@@ -245,50 +244,50 @@ if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnkt
 	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktbWVzc2FnZS1wYXR0ZXJuCg== | "$pathBase64" -d)" ]]; then
 		if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktdGFzay1pZC1jb21taXQtbWVzc2FnZS1tYXRjaGVzLWJyYW5jaC1uYW1lCg== | "$pathBase64" -d)" ]]; then
 			if [ -n "$taskIdBranchName" ] && [ "$isEpicBranch" == false ]; then
-				echo "$tagHookName $warningMessage"
+				echo "$tagHookName $MESSAGE_WARNING"
 				echo "Verificando se a tarefa #$taskIdCommitMessage, informada na mensagem do commit, corresponde ao esperado no branch '$currentBranchName'"
 				echo ""
 
 				if ! [[ "$commitMessage" =~ "#$taskIdBranchName" ]]; then
-					echo "$tagHookName $errorMessage"
+					echo "$tagHookName $MESSAGE_ERROR"
 					echo "O id da tarefa, informado na mensagem do commit, NAO esta de acordo com o nome do branch!"
 					echo "Portanto, deve-se ajusta-la antes de tentar fazer o commit novamente."
 					echo "Branch: $currentBranchName"
 					echo "Id da tarefa atual: #$taskIdCommitMessage"
 					echo "Id da tarefa esperado: #$taskIdBranchName"
-					echo "$helpMessageGCS"
+					echo "$MESSAGE_HELP_SCM"
 					exit 1
 				fi
 			fi
 		fi
 
 		if [ "$repositoryUsesWorkflow" == true ]; then
-			echo "$tagHookName $warningMessage"
+			echo "$tagHookName $MESSAGE_WARNING"
 			echo "Verificando se a mensagem do commit esta no padrao esperado '$commitMessagePattern'"
 			echo ""
 
 			if ! [[ "$commitMessage" =~ $REGEX_TASK_ID_MESSAGE ]]; then
-				echo "$tagHookName $errorMessage"
+				echo "$tagHookName $MESSAGE_ERROR"
 				echo "A mensagem do commit NAO esta no padrao esperado!"
 				echo "Portanto, deve-se ajusta-la antes de tentar fazer o commit novamente."
 				echo "Exemplo: #TaskId - Message (a mensagem deve conter no minimo 15 caracteres)"
 				echo "Regex: $REGEX_TASK_ID_MESSAGE"
-				echo "$helpMessageGCS"
+				echo "$MESSAGE_HELP_SCM"
 				exit 1
 			fi
 		fi
 
 		if [ "$isEpicBranch" == true ]; then
-			echo "$tagHookName $warningMessage"
+			echo "$tagHookName $MESSAGE_WARNING"
 			echo "Verificando se o id da tarefa epica (parent) foi informado na mensagem do commit"
 			echo ""
 
 			if [[ "$commitMessage" =~ "#$taskIdBranchName" ]]; then
-				echo "$tagHookName $errorMessage"
+				echo "$tagHookName $MESSAGE_ERROR"
 				echo "A tarefa epica (parent) NAO pode ser informada na mensagem do commit!"
 				echo "Portanto, deve-se informar uma tarefa filha (child) antes de tentar fazer o commit novamente."
 				echo "Id da tarefa epica: #$taskIdBranchName"
-				echo "$helpMessageGCS"
+				echo "$MESSAGE_HELP_SCM"
 				exit 1
 			fi
 		fi
@@ -296,10 +295,10 @@ if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnkt
 
 	if [ "$repositoryUsesWorkflow" == true ]; then
 		if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktbWVzc2FnZS1wYXR0ZXJuCg== | "$pathBase64" -d)" ]] ); then
-			if [ "$currentBranchName" == "$DEVELOP" ] || [ "$currentBranchName" == "$PRODUCTION" ] || [ "$currentBranchName" == "$MAIN" ]; then
-				echo "$tagHookName $errorMessage"
+			if [ "$currentBranchName" == "$BRANCH_DEVELOP" ] || [ "$currentBranchName" == "$BRANCH_PRODUCTION" ] || [ "$currentBranchName" == "$BRANCH_MAIN" ]; then
+				echo "$tagHookName $MESSAGE_ERROR"
 				echo "NAO eh permitido fazer um commit diretamente no branch '$currentBranchName'!"
-				echo "$helpMessageGCS"
+				echo "$MESSAGE_HELP_SCM"
 				exit 1
 			fi
 		fi
@@ -309,15 +308,15 @@ if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnkt
 		configBranchRemote="$(git config --local --get branch.$currentBranchName.remote)"
 
 		if [ -n "$configBranchRemote" ]; then
-			echo "$tagHookName $warningMessage"
+			echo "$tagHookName $MESSAGE_WARNING"
 			echo "Buscando referencias do branch '$currentBranchName' no repositorio remoto"
 			git fetch origin $currentBranchName
 
 			if [ "$?" -ne "0" ]; then
-				echo "$tagHookName $errorMessage"
+				echo "$tagHookName $MESSAGE_ERROR"
 				echo "Nao foi possivel fazer o commit no branch local '$currentBranchName'!" 
 				echo "Pois o branch remoto 'origin/$currentBranchName' ja foi apagado ou nao foi possivel conectar com o repositorio remoto."
-				echo "$helpMessageGCS"
+				echo "$MESSAGE_HELP_SCM"
 				exit 1
 			else
 				echo ""
@@ -330,7 +329,7 @@ if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnkt
 	#echo "$listFiles"
 
 	if [ -n "$listFiles" ]; then
-		echo "$tagHookName $warningMessage"
+		echo "$tagHookName $MESSAGE_WARNING"
 		echo "Verificando regras de commit no(s) arquivo(s):"
 
 		while read -r line; do
@@ -381,11 +380,11 @@ if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnkt
 				fileWithConflictMarker="$(git grep --name-only -E "^(<<<<<<<|>>>>>>>)|^=======$" -- "$filePath")"
 
 				if [ -n "$fileWithConflictMarker" ]; then
-					echo "$tagHookName $errorMessage"
+					echo "$tagHookName $MESSAGE_ERROR"
 					echo "NAO eh permitido fazer commit de um arquivo que contenha marcacao de conflitos!"
 					echo "Portanto, deve-se resolver as marcacoes (<<<<<<<, ======= e >>>>>>>) antes de tentar fazer o commit novamente."
 					echo "Arquivo: $filePath"
-					echo "$helpMessageGCS"
+					echo "$MESSAGE_HELP_SCM"
 					exit 1
 				fi
 			fi
