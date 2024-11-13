@@ -30,7 +30,7 @@ copyFileExec () {
 	pFileName="$1"
 	pDestinationDirectory="$2"
 
-	echo "$INFO Copying the file '$pFileName' to '$pDestinationDirectory'"
+	echo "Copying the file '$pFileName' to '$pDestinationDirectory'"
 	cp -p "$pFileName" "$pDestinationDirectory"
 }
 

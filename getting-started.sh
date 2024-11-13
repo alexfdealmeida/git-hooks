@@ -9,5 +9,4 @@ if [ -f $vScriptCopyGitHooks ]; then
 	echo "$vPrefixGettingStarted $vScriptCopyGitHooks"
 	chmod +x $vScriptCopyGitHooks
 	./$vScriptCopyGitHooks
-	echo ""
 fi
