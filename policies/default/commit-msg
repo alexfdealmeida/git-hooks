@@ -134,12 +134,12 @@ setCommitMessage () {
 setCommitMessage "$1"
 
 # Ao adicionar um repositorio, deve-se manter o ";" no final da string, para evitar resultado "falso-positivo"
-repositoriesWorkflow=";"
+repositoriesGSKFlow=";"
 
-if [[ "$repositoriesWorkflow" =~ "$repositoryName;" ]]; then
-	repositoryUsesWorkflow=true
+if [[ "$repositoriesGSKFlow" =~ "$repositoryName;" ]]; then
+	repositoryUsesGSKFlow=true
 else
-	repositoryUsesWorkflow=false
+	repositoryUsesGSKFlow=false
 fi
 
 validateGSKVersion () {
@@ -261,7 +261,7 @@ if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnkt
 			fi
 		fi
 
-		if [ "$repositoryUsesWorkflow" == true ]; then
+		if [ "$repositoryUsesGSKFlow" == true ]; then
 			echo "$tagHookName $MESSAGE_WARNING"
 			echo "Verificando se a mensagem do commit esta no padrao esperado '$commitMessagePattern'"
 			echo ""
@@ -293,7 +293,7 @@ if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnkt
 		fi
 	fi
 
-	if [ "$repositoryUsesWorkflow" == true ]; then
+	if [ "$repositoryUsesGSKFlow" == true ]; then
 		if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktbWVzc2FnZS1wYXR0ZXJuCg== | "$pathBase64" -d)" ]] ); then
 			if [ "$currentBranchName" == "$BRANCH_DEVELOP" ] || [ "$currentBranchName" == "$BRANCH_PRODUCTION" ] || [ "$currentBranchName" == "$BRANCH_MAIN" ]; then
 				echo "$tagHookName $MESSAGE_ERROR"
