@@ -181,7 +181,7 @@ showVariables () {
 	echo "isSCMProfile: $isSCMProfile"
 	echo "repositoryUsesGSKFlow: $repositoryUsesGSKFlow"
 	echo "repositoryName: $repositoryName"
-	echo "repositoryUrl: $repositoryUrl"
+	# echo "repositoryUrl: $repositoryUrl"
 	echo "taskIdBranchName: $taskIdBranchName"
 	echo "userSCM: $userSCM"
 	echo ""
