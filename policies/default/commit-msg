@@ -78,9 +78,9 @@ fi
 
 currentBranchName="$(git branch | sed -e '/^\*/!d' -e 's|*||' -e 's| ||')"
 
-prefixCurrentBranch="$BRANCH_PREFIX $currentBranchName;"
+prefixCurrentBranch="$BRANCH_PREFIX $currentBranchName"
 
-commitMessagePattern="$BRANCH_PREFIX branchName; #TaskId - Message"
+commitMessagePattern="$BRANCH_PREFIX currentBranchName; #TaskId - Message"
 
 repositoryUrl="$(git config --local --get remote.origin.url)"
 
@@ -232,19 +232,28 @@ if ! [[ "$commitMessage" =~ $REGEX_PREFIX_BRANCH ]]; then
 		fi
 	fi
 
-	echo "$prefixCurrentBranch $commitMessage" > "$1"
+	echo "${prefixCurrentBranch}; $commitMessage" > "$1"
 	setCommitMessage "$1"
 	echo "$tagHookName $MESSAGE_INFO"
 	echo "Adicionado o prefixo '$prefixCurrentBranch' na mensagem do commit"
-	echo "Mensagem atualizada:"
+	echo "Mensagem do commit atualizada:"
 	echo "$commitMessage"
 	echo ""
 elif ! [[ "$commitMessage" =~ ";" ]]; then
 	echo "$tagHookName $MESSAGE_ERROR"
 	echo "O prefixo do branch informado na mensagem do commit esta invalido!"
-	echo "Mensagem atual:"
+	echo "Mensagem do commit:"
 	echo "$commitMessage"
-	echo "Exemplo: '$commitMessagePattern'"
+	echo "Exemplo do padrao esperado: '$commitMessagePattern'"
+	exit 1
+fi
+
+if ! [[ "$commitMessage" =~ ^"${prefixCurrentBranch}" ]]; then
+	echo "$tagHookName $MESSAGE_ERROR"
+	echo "O prefixo do branch informado na mensagem do commit NAO corresponde ao nome do branch corrente '$currentBranchName'!"
+	echo "Mensagem do commit:"
+	echo "$commitMessage"
+	echo "Exemplo do padrao esperado: '$commitMessagePattern'"
 	exit 1
 fi
 
