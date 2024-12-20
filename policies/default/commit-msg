@@ -57,7 +57,7 @@ REGEX_PRODUCTION_VERSION="^version\/production\/[0-9]+\.[0-9]+\.[0-9]+$"
 REGEX_MAIN_VERSION="^version\/main\/[0-9]+\.[0-9]+\.[0-9]+$"
 
 # Required versions
-REQUIRED_VERSION_GSK="16.0.5"
+REQUIRED_VERSION_GSK="16.1.3"
 
 if [ -d "/C/Program Files/Git/usr/bin/" ]; then
 	pathBase64="/C/Program Files/Git/usr/bin/base64"
