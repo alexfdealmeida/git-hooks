@@ -146,7 +146,7 @@ validateGSKVersion () {
 	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktc2lhZ3JpZ3NrLXZlcnNpb24K | "$pathBase64" -d)" ]]; then
 		if [ "$gskInstalled" == true ]; then
 			echo "$tagHookName $MESSAGE_INFO"
-			echo "Verificando a versao instalada do GSK"
+			echo "Verificando a versao do GSK"
 			echo ""
 
 			currentVersionGSK="$(gsk_version_short)"
@@ -154,7 +154,7 @@ validateGSKVersion () {
 			if [ "$("$pathPrintf" "%s\n" "$REQUIRED_VERSION_GSK" "$currentVersionGSK" | "$pathSort" -V | "$pathHead" -n1)" != "$REQUIRED_VERSION_GSK" ]; then
 				echo "$tagHookName $MESSAGE_ERROR"
 				echo "A versao do GSK esta DESATUALIZADA!"
-				echo "Versao corrente: $currentVersionGSK"
+				echo "Versao atual: $currentVersionGSK"
 				echo "Versao minima requerida: $REQUIRED_VERSION_GSK"
 				echo "Portanto, deve-se atualiza-lo, utilizando o seguinte comando: 'gsk update'."
 				echo "$MESSAGE_HELP_SCM"
@@ -250,7 +250,7 @@ fi
 
 if ! [[ "$commitMessage" =~ ^"${prefixCurrentBranch}" ]]; then
 	echo "$tagHookName $MESSAGE_ERROR"
-	echo "O prefixo do branch informado na mensagem do commit NAO corresponde ao nome do branch corrente '$currentBranchName'!"
+	echo "O prefixo do branch informado na mensagem do commit NAO corresponde ao nome do branch atual '$currentBranchName'!"
 	echo "Mensagem do commit:"
 	echo "$commitMessage"
 	echo "Exemplo do padrao esperado: '$commitMessagePattern'"
