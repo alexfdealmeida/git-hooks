@@ -68,15 +68,15 @@ pathSort="sort"
 pathHead="head"
 
 if [ -d "$pathGitUsrBin64" ]; then
-	pathBase64="$pathGitUsrBin64/base64.exe"
-	pathPrintf="$pathGitUsrBin64/printf.exe"
-	pathSort="$pathGitUsrBin64/sort.exe"
-	pathHead="$pathGitUsrBin64/head.exe"
+	pathBase64="$pathGitUsrBin64/$pathBase64.exe"
+	pathPrintf="$pathGitUsrBin64/$pathPrintf.exe"
+	pathSort="$pathGitUsrBin64/$pathSort.exe"
+	pathHead="$pathGitUsrBin64/$pathHead.exe"
 elif [ -d "$pathGitUsrBin32" ]; then
-	pathBase64="$pathGitUsrBin32/base64.exe"
-	pathPrintf="$pathGitUsrBin32/printf.exe"
-	pathSort="$pathGitUsrBin32/sort.exe"
-	pathHead="$pathGitUsrBin32/head.exe"
+	pathBase64="$pathGitUsrBin32/$pathBase64.exe"
+	pathPrintf="$pathGitUsrBin32/$pathPrintf.exe"
+	pathSort="$pathGitUsrBin32/$pathSort.exe"
+	pathHead="$pathGitUsrBin32/$pathHead.exe"
 fi
 
 currentBranchName="$(git branch | sed -e '/^\*/!d' -e 's|*||' -e 's| ||')"
