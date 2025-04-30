@@ -59,21 +59,24 @@ REGEX_MAIN_VERSION="^version\/main\/[0-9]+\.[0-9]+\.[0-9]+$"
 # Required versions
 REQUIRED_VERSION_GSK="17.1.3"
 
-if [ -d "/C/Program Files/Git/usr/bin/" ]; then
-	pathBase64="/C/Program Files/Git/usr/bin/base64"
-	pathPrintf="/C/Program Files/Git/usr/bin/printf"
-	pathSort="/C/Program Files/Git/usr/bin/sort"
-	pathHead="/C/Program Files/Git/usr/bin/head"
-elif [ -d "/C/Program Files (x86)/Git/usr/bin/" ]; then
-	pathBase64="/C/Program Files (x86)/Git/usr/bin/base64"
-	pathPrintf="/C/Program Files (x86)/Git/usr/bin/printf"
-	pathSort="/C/Program Files (x86)/Git/usr/bin/sort"
-	pathHead="/C/Program Files (x86)/Git/usr/bin/head"
-else
-	pathBase64="base64"
-	pathPrintf="printf"
-	pathSort="sort"
-	pathHead="head"
+pathGitUsrBin64="/c/Program Files/Git/usr/bin"
+pathGitUsrBin32="/c/Program Files (x86)/Git/usr/bin"
+
+pathBase64="base64"
+pathPrintf="printf"
+pathSort="sort"
+pathHead="head"
+
+if [ -d "$pathGitUsrBin64" ]; then
+	pathBase64="$pathGitUsrBin64/base64.exe"
+	pathPrintf="$pathGitUsrBin64/printf.exe"
+	pathSort="$pathGitUsrBin64/sort.exe"
+	pathHead="$pathGitUsrBin64/head.exe"
+elif [ -d "$pathGitUsrBin32" ]; then
+	pathBase64="$pathGitUsrBin32/base64.exe"
+	pathPrintf="$pathGitUsrBin32/printf.exe"
+	pathSort="$pathGitUsrBin32/sort.exe"
+	pathHead="$pathGitUsrBin32/head.exe"
 fi
 
 currentBranchName="$(git branch | sed -e '/^\*/!d' -e 's|*||' -e 's| ||')"
@@ -179,6 +182,10 @@ showVariables () {
 	echo "gskInstalled: $gskInstalled"
 	echo "isEpicBranch: $isEpicBranch"
 	echo "isSCMProfile: $isSCMProfile"
+	echo "pathBase64: $pathBase64"
+	echo "pathPrintf: $pathPrintf"
+	echo "pathSort: $pathSort"
+	echo "pathHead: $pathHead"
 	echo "repositoryUsesGSKFlow: $repositoryUsesGSKFlow"
 	echo "repositoryName: $repositoryName"
 	# echo "repositoryUrl: $repositoryUrl"
