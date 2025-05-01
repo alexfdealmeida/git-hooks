@@ -1,0 +1,1 @@
+git config core.hooksPath "/c/workspace-personal/github/git-hooks/policies/default"
