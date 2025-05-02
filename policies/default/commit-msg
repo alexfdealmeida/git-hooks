@@ -92,7 +92,6 @@ repositoryName="$(basename -s .git "$repositoryUrl")"
 isEpicBranch=false
 gskInstalled=false
 isSCMProfile=false
-userSCM=false
 taskIdBranchName=""
 
 if [[ "$currentBranchName" =~ $REGEX_BUGFIX_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_FEATURE_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_TRAINING_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_EPIC_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_HOTFIX_PRODUCTION_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_HOTFIX_BRANCH ]]; then
@@ -119,16 +118,6 @@ fi
 
 # author="$(git var GIT_AUTHOR_IDENT | cut -d '<' -f 1 | sed 's/ //g')"
 author="$(git config --global --get user.name)"
-
-if [ "$isSCMProfile" == true ]; then
-	SiagriGSKSUserSCMEnvironmentVariable=$SiagriGSKSUserSCM
-
-	if [ -n "$SiagriGSKSUserSCMEnvironmentVariable" ]; then
-		if [ "$author" == "$(echo $SiagriGSKSUserSCMEnvironmentVariable | "$pathBase64" -d)" ]; then
-			userSCM=true
-		fi
-	fi
-fi
 
 setCommitMessage () {
 	commitMessage="$(cat "$1")"
@@ -190,12 +179,11 @@ showVariables () {
 	echo "repositoryName: $repositoryName"
 	# echo "repositoryUrl: $repositoryUrl"
 	echo "taskIdBranchName: $taskIdBranchName"
-	echo "userSCM: $userSCM"
 	echo ""
 }
 
 showProtectedFilesMessage () {
-	if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcG9saWNpZXMtcHJvdGVjdGVkLWZpbGVzCg== | "$pathBase64" -d)" ]] ); then
+	if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcG9saWNpZXMtcHJvdGVjdGVkLWZpbGVzCg== | "$pathBase64" -d)" ]] ); then
 		echo "$tagHookName $MESSAGE_ERROR"
 		echo "Arquivo/diretorio protegido pelas politicas de seguranca da GCS!"
 		echo "Arquivo: $filePath"
@@ -282,7 +270,7 @@ else
 	taskIdCommitMessage=""
 fi
 
-if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcG9saWNpZXMtaG9vawo= | "$pathBase64" -d)" ]] ); then
+if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcG9saWNpZXMtaG9vawo= | "$pathBase64" -d)" ]] ); then
 	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktbWVzc2FnZS1wYXR0ZXJuCg== | "$pathBase64" -d)" ]]; then
 		if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktdGFzay1pZC1jb21taXQtbWVzc2FnZS1tYXRjaGVzLWJyYW5jaC1uYW1lCg== | "$pathBase64" -d)" ]]; then
 			if [ -n "$taskIdBranchName" ] && [ "$isEpicBranch" == false ]; then
@@ -336,7 +324,7 @@ if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnkt
 	fi
 
 	if [ "$repositoryUsesGSKFlow" == true ]; then
-		if ! ( [ "$userSCM" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktbWVzc2FnZS1wYXR0ZXJuCg== | "$pathBase64" -d)" ]] ); then
+		if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktbWVzc2FnZS1wYXR0ZXJuCg== | "$pathBase64" -d)" ]] ); then
 			if [ "$currentBranchName" == "$BRANCH_DEVELOP" ] || [ "$currentBranchName" == "$BRANCH_PRODUCTION" ] || [ "$currentBranchName" == "$BRANCH_MAIN" ]; then
 				echo "$tagHookName $MESSAGE_ERROR"
 				echo "NAO eh permitido fazer um commit diretamente no branch '$currentBranchName'!"
