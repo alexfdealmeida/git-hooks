@@ -104,16 +104,10 @@ elif [[ "$currentBranchName" =~ $REGEX_HOTFIX_VERSION_BRANCH ]] || [[ "$currentB
 	taskIdBranchName="$(echo "$currentBranchName" | cut -d '/' -f 5)"
 fi
 
-gskEnvironmentVariable=$SiagriGSK
+if command -v gsk > /dev/null 2>&1; then
+	gskInstalled=true
 
-if [ -n "$gskEnvironmentVariable" ]; then
-	command -v gsk > /dev/null 2>&1
-
-	if [ $? -eq 0 ]; then
-		gskInstalled=true
-
-		isSCMProfile="$(is_scm_profile)"
-	fi
+	isSCMProfile="$(is_scm_profile)"
 fi
 
 # author="$(git var GIT_AUTHOR_IDENT | cut -d '<' -f 1 | sed 's/ //g')"
