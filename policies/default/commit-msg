@@ -50,8 +50,8 @@ REGEX_TRAINING_BRANCH="^training-[0-9]+$"
 REGEX_EPIC_BRANCH="^epic-[0-9]+$"
 REGEX_RELEASE_BRANCH="^release-[0-9]+-[0-9]+-[0-9]+$|^release-[0-9]+\.[0-9]+\.[0-9]+$"
 REGEX_PACKAGE_BRANCH="^package-arq-[0-9]+-[0-9]+-[0-9]+$|^package-arq-[0-9]+\.[0-9]+\.[0-9]+$|^package-arq-[0-9]+$"
-REGEX_HOTFIX_MAIN_BRANCH="^hotfix-[0-9]+$"
-REGEX_HOTFIX_MAIN_RC_BRANCH="^main-rc\/hotfix\/[0-9]+$"
+REGEX_HOTFIX_BRANCH="^hotfix-[0-9]+$"
+REGEX_HOTFIX_RC_BRANCH="^main-rc\/hotfix\/[0-9]+$"
 REGEX_HOTFIX_PRODUCTION_BRANCH="^hotfix-production-[0-9]+$"
 REGEX_HOTFIX_PRODUCTION_VERSION_BRANCH="^version\/[0-9]+\.[0-9]+\.[0-9]+\/production\/hotfix\/[0-9]+$"
 REGEX_HOTFIX_VERSION_BRANCH="^version\/[0-9]+\.[0-9]+\.[0-9]+\/main\/hotfix\/[0-9]+$"
@@ -97,7 +97,7 @@ isSCMProfile=false
 taskIdBranchName=""
 
 if [[ "$currentBranchName" =~ $REGEX_BUGFIX_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_FEATURE_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_TRAINING_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_EPIC_BRANCH ]] || 
-   [[ "$currentBranchName" =~ $REGEX_HOTFIX_PRODUCTION_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_HOTFIX_MAIN_RC_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_HOTFIX_MAIN_BRANCH ]]; then
+   [[ "$currentBranchName" =~ $REGEX_HOTFIX_PRODUCTION_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_HOTFIX_RC_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_HOTFIX_BRANCH ]]; then
 	taskIdBranchName="$(echo "$currentBranchName" | sed -e "s/[^0-9]//g")"
 
 	if [[ "$currentBranchName" =~ $REGEX_EPIC_BRANCH ]]; then
