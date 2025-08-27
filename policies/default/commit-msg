@@ -28,6 +28,7 @@ tagHookVersion="1.0.1"
 
 # Branches
 BRANCH_MAIN="main"
+BRANCH_MAIN_RC="main-rc"
 BRANCH_PRODUCTION="production"
 BRANCH_DEVELOP="develop"
 BRANCH_PREFIX="Branch:"
@@ -49,7 +50,8 @@ REGEX_TRAINING_BRANCH="^training-[0-9]+$"
 REGEX_EPIC_BRANCH="^epic-[0-9]+$"
 REGEX_RELEASE_BRANCH="^release-[0-9]+-[0-9]+-[0-9]+$|^release-[0-9]+\.[0-9]+\.[0-9]+$"
 REGEX_PACKAGE_BRANCH="^package-arq-[0-9]+-[0-9]+-[0-9]+$|^package-arq-[0-9]+\.[0-9]+\.[0-9]+$|^package-arq-[0-9]+$"
-REGEX_HOTFIX_BRANCH="^hotfix-[0-9]+$"
+REGEX_HOTFIX_MAIN_BRANCH="^hotfix-[0-9]+$"
+REGEX_HOTFIX_MAIN_RC_BRANCH="^main-rc\/hotfix\/[0-9]+$"
 REGEX_HOTFIX_PRODUCTION_BRANCH="^hotfix-production-[0-9]+$"
 REGEX_HOTFIX_PRODUCTION_VERSION_BRANCH="^version\/[0-9]+\.[0-9]+\.[0-9]+\/production\/hotfix\/[0-9]+$"
 REGEX_HOTFIX_VERSION_BRANCH="^version\/[0-9]+\.[0-9]+\.[0-9]+\/main\/hotfix\/[0-9]+$"
@@ -94,7 +96,8 @@ gskInstalled=false
 isSCMProfile=false
 taskIdBranchName=""
 
-if [[ "$currentBranchName" =~ $REGEX_BUGFIX_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_FEATURE_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_TRAINING_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_EPIC_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_HOTFIX_PRODUCTION_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_HOTFIX_BRANCH ]]; then
+if [[ "$currentBranchName" =~ $REGEX_BUGFIX_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_FEATURE_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_TRAINING_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_EPIC_BRANCH ]] || 
+   [[ "$currentBranchName" =~ $REGEX_HOTFIX_PRODUCTION_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_HOTFIX_MAIN_RC_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_HOTFIX_MAIN_BRANCH ]]; then
 	taskIdBranchName="$(echo "$currentBranchName" | sed -e "s/[^0-9]//g")"
 
 	if [[ "$currentBranchName" =~ $REGEX_EPIC_BRANCH ]]; then
@@ -319,7 +322,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 
 	if [ "$repositoryUsesGSKFlow" == true ]; then
 		if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktbWVzc2FnZS1wYXR0ZXJuCg== | "$pathBase64" -d)" ]] ); then
-			if [ "$currentBranchName" == "$BRANCH_DEVELOP" ] || [ "$currentBranchName" == "$BRANCH_PRODUCTION" ] || [ "$currentBranchName" == "$BRANCH_MAIN" ]; then
+			if [ "$currentBranchName" == "$BRANCH_DEVELOP" ] || [ "$currentBranchName" == "$BRANCH_PRODUCTION" ] || [ "$currentBranchName" == "$BRANCH_MAIN" ] || [ "$currentBranchName" == "$BRANCH_MAIN_RC" ]; then
 				echo "$tagHookName $MESSAGE_ERROR"
 				echo "NAO eh permitido fazer um commit diretamente no branch '$currentBranchName'!"
 				echo "$MESSAGE_HELP_SCM"
