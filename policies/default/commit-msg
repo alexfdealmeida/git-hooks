@@ -53,8 +53,8 @@ REGEX_PACKAGE_BRANCH="^package-arq-[0-9]+-[0-9]+-[0-9]+$|^package-arq-[0-9]+\.[0
 REGEX_HOTFIX_BRANCH="^hotfix-[0-9]+$"
 REGEX_HOTFIX_RC_BRANCH="^temp\/main-rc\/hotfix\/[0-9]+$"
 REGEX_HOTFIX_PRODUCTION_BRANCH="^hotfix-production-[0-9]+$"
-REGEX_HOTFIX_PRODUCTION_VERSION_BRANCH="^version\/[0-9]+\.[0-9]+\.[0-9]+\/production\/hotfix\/[0-9]+$"
-REGEX_HOTFIX_VERSION_BRANCH="^version\/[0-9]+\.[0-9]+\.[0-9]+\/main\/hotfix\/[0-9]+$"
+REGEX_HOTFIX_PRODUCTION_VERSION_BRANCH="^version\/[0-9]+\.[0-9]+\.[0-9]+\/production\/hotfix\/[0-9]+$|^temp\/version\/[0-9]+\.[0-9]+\.[0-9]+\/production\/hotfix\/[0-9]+$"
+REGEX_HOTFIX_VERSION_BRANCH="^version\/[0-9]+\.[0-9]+\.[0-9]+\/main\/hotfix\/[0-9]+$|^temp\/version\/[0-9]+\.[0-9]+\.[0-9]+\/main\/hotfix\/[0-9]+$"
 REGEX_PRODUCTION_VERSION="^version\/production\/[0-9]+\.[0-9]+\.[0-9]+$"
 REGEX_MAIN_VERSION="^version\/main\/[0-9]+\.[0-9]+\.[0-9]+$"
 
