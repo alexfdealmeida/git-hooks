@@ -402,7 +402,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 				   [ "$filePathLowercase" == "get-new-version-ci.sh" ] || [ "$filePathLowercase" == "has-changes-ci.sh" ]; then
 					showProtectedFilesMessage
 				fi
-			elif [ "$filePathLowercase" == ".gitmodules" ] || [ "$filePathLowercase" == ".gitattributes" ] || [ "$filePathLowercase" == "project.properties" ]; then
+			elif [ "$filePathLowercase" == ".gitmodules" ] || [ "$filePathLowercase" == ".gitattributes" ] || [ "$filePathLowercase" == ".gskconfig" ]; then
 				showProtectedFilesMessage
 			fi
 
