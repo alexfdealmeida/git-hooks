@@ -193,6 +193,16 @@ showProtectedFilesMessage () {
 	fi
 }
 
+showRestrictedFilesMessage () {
+	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcG9saWNpZXMtcmVzdHJpY3RlZC1maWxlcwo= | "$pathBase64" -d)" ]]; then
+		echo "$tagHookName $MESSAGE_ERROR"
+		echo "Arquivo/diretorio restrito pelas politicas de seguranca da GCS!"
+		echo "Arquivo: $filePath"
+		echo "$MESSAGE_HELP_SCM"
+		exit 1
+	fi
+}
+
 echo ""
 
 validateGSKVersion
@@ -402,8 +412,10 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 				   [ "$filePathLowercase" == "get-new-version-ci.sh" ] || [ "$filePathLowercase" == "has-changes-ci.sh" ]; then
 					showProtectedFilesMessage
 				fi
-			elif [ "$filePathLowercase" == ".gitmodules" ] || [ "$filePathLowercase" == ".gitattributes" ] || [ "$filePathLowercase" == ".gskconfig" ]; then
+			elif [ "$filePathLowercase" == ".gitmodules" ] || [ "$filePathLowercase" == ".gskconfig" ]; then
 				showProtectedFilesMessage
+			elif [ "$filePathLowercase" == ".gitattributes" ]; then
+				showRestrictedFilesMessage
 			fi
 
 			if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktY29uZmxpY3QtbWFya2VyCg== | "$pathBase64" -d)" ]]; then
