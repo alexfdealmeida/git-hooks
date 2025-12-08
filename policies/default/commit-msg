@@ -59,7 +59,7 @@ REGEX_PRODUCTION_VERSION="^version\/production\/[0-9]+\.[0-9]+\.[0-9]+$"
 REGEX_MAIN_VERSION="^version\/main\/[0-9]+\.[0-9]+\.[0-9]+$"
 
 # Required versions
-REQUIRED_VERSION_GSK="18.0.2"
+REQUIRED_VERSION_GSK="18.1.9"
 
 pathGitUsrBin64="/c/Program Files/Git/usr/bin"
 pathGitUsrBin32="/c/Program Files (x86)/Git/usr/bin"
