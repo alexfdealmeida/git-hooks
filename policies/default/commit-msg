@@ -136,7 +136,7 @@ else
 fi
 
 validateGSKVersion () {
-	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktc2lhZ3JpZ3NrLXZlcnNpb24K | "$pathBase64" -d)" ]]; then
+	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktZ3NrLXZlcnNpb24K | "$pathBase64" -d)" ]]; then
 		if [ "$gskInstalled" == true ]; then
 			echo "$tagHookName $MESSAGE_INFO"
 			echo "Verificando a versao do GSK"
