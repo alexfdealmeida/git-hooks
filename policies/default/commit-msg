@@ -36,7 +36,7 @@ BRANCH_PREFIX="Branch:"
 # Messages
 MESSAGE_ERROR="ERROR: "
 MESSAGE_INFO="info: "
-MESSAGE_HELP_SCM="Em caso de duvidas, entre em contato com a equipe de GCS."
+MESSAGE_POLICY_TAGS="Para verificar as tags disponiveis na politica de commits, utilize o script 'gsk show_commit_policy_tags'."
 
 # RegEx
 REGEX_TASK_ID_MESSAGE="[;][ ]+#[0-9]+[ ][-][ ]+[a-zA-Z0-9].{15,}.+$"
@@ -146,11 +146,11 @@ validateGSKVersion () {
 
 			if [ "$("$pathPrintf" "%s\n" "$REQUIRED_VERSION_GSK" "$currentVersionGSK" | "$pathSort" -V | "$pathHead" -n1)" != "$REQUIRED_VERSION_GSK" ]; then
 				echo "$tagHookName $MESSAGE_ERROR"
-				echo "A versao do GSK esta DESATUALIZADA!"
+				echo "A versao do GSK esta desatualizada!"
 				echo "Versao atual: $currentVersionGSK"
 				echo "Versao minima requerida: $REQUIRED_VERSION_GSK"
-				echo "Portanto, deve-se atualiza-lo, utilizando o seguinte comando: 'gsk update'."
-				echo "$MESSAGE_HELP_SCM"
+				echo "Para atualizar, utilize o comando 'gsk update'."
+				echo "$MESSAGE_POLICY_TAGS"
 				exit 1
 			fi
 
@@ -186,9 +186,9 @@ showVariables () {
 showProtectedFilesMessage () {
 	if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcG9saWNpZXMtcHJvdGVjdGVkLWZpbGVzCg== | "$pathBase64" -d)" ]] ); then
 		echo "$tagHookName $MESSAGE_ERROR"
-		echo "Arquivo/diretorio protegido pelas politicas de seguranca da GCS!"
+		echo "Arquivo protegido pelas politicas de seguranca da GCS!"
 		echo "Arquivo: $filePath"
-		echo "$MESSAGE_HELP_SCM"
+		echo "$MESSAGE_POLICY_TAGS"
 		exit 1
 	fi
 }
@@ -196,9 +196,9 @@ showProtectedFilesMessage () {
 showRestrictedFilesMessage () {
 	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcG9saWNpZXMtcmVzdHJpY3RlZC1maWxlcwo= | "$pathBase64" -d)" ]]; then
 		echo "$tagHookName $MESSAGE_ERROR"
-		echo "Arquivo/diretorio restrito pelas politicas de seguranca da GCS!"
+		echo "Arquivo restrito pelas politicas de seguranca da GCS!"
 		echo "Arquivo: $filePath"
-		echo "$MESSAGE_HELP_SCM"
+		echo "$MESSAGE_POLICY_TAGS"
 		exit 1
 	fi
 }
@@ -296,7 +296,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 					echo "Branch: $currentBranchName"
 					echo "Id da tarefa atual: #$taskIdCommitMessage"
 					echo "Id da tarefa esperado: #$taskIdBranchName"
-					echo "$MESSAGE_HELP_SCM"
+					echo "$MESSAGE_POLICY_TAGS"
 					exit 1
 				fi
 			fi
@@ -313,7 +313,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 				echo "Portanto, deve-se ajusta-la antes de tentar fazer o commit novamente."
 				echo "Exemplo: #TaskId - Message (a mensagem deve conter no minimo 15 caracteres)"
 				echo "Regex: $REGEX_TASK_ID_MESSAGE"
-				echo "$MESSAGE_HELP_SCM"
+				echo "$MESSAGE_POLICY_TAGS"
 				exit 1
 			fi
 		fi
@@ -328,7 +328,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 				echo "A tarefa epica (parent) NAO pode ser informada na mensagem do commit!"
 				echo "Portanto, deve-se informar uma tarefa filha (child) antes de tentar fazer o commit novamente."
 				echo "Id da tarefa epica: #$taskIdBranchName"
-				echo "$MESSAGE_HELP_SCM"
+				echo "$MESSAGE_POLICY_TAGS"
 				exit 1
 			fi
 		fi
@@ -339,7 +339,6 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 			if [ "$currentBranchName" == "$BRANCH_DEVELOP" ] || [ "$currentBranchName" == "$BRANCH_PRODUCTION" ] || [ "$currentBranchName" == "$BRANCH_MAIN" ] || [ "$currentBranchName" == "$BRANCH_MAIN_RC" ]; then
 				echo "$tagHookName $MESSAGE_ERROR"
 				echo "NAO eh permitido fazer um commit diretamente no branch '$currentBranchName'!"
-				echo "$MESSAGE_HELP_SCM"
 				exit 1
 			fi
 		fi
@@ -355,9 +354,8 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 
 			if [ "$?" -ne "0" ]; then
 				echo "$tagHookName $MESSAGE_ERROR"
-				echo "Nao foi possivel fazer o commit no branch local '$currentBranchName'!" 
-				echo "Pois o branch remoto 'origin/$currentBranchName' ja foi apagado ou nao foi possivel conectar com o repositorio remoto."
-				echo "$MESSAGE_HELP_SCM"
+				echo "O branch 'origin/${currentBranchName}' foi apagado remotamente ou nao foi possivel conectar com o repositorio remoto!"
+				echo "$MESSAGE_POLICY_TAGS"
 				exit 1
 			else
 				echo ""
@@ -424,10 +422,10 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 
 				if [ -n "$fileWithConflictMarker" ]; then
 					echo "$tagHookName $MESSAGE_ERROR"
-					echo "NAO eh permitido fazer commit de um arquivo que contenha marcacao de conflitos!"
-					echo "Portanto, deve-se resolver as marcacoes (<<<<<<<, ======= e >>>>>>>) antes de tentar fazer o commit novamente."
+					echo "NAO eh permitido fazer commit de um arquivo com marcadores de conflitos (<<<<<<<, ======= e >>>>>>>)!"
+					echo "Portanto, resolva os conflitos e tente fazer o commit novamente."
 					echo "Arquivo: $filePath"
-					echo "$MESSAGE_HELP_SCM"
+					echo "$MESSAGE_POLICY_TAGS"
 					exit 1
 				fi
 			fi
