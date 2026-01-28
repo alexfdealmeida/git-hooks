@@ -210,17 +210,16 @@ validateGSKVersion
 showVariables
 
 echo "$tagHookName $MESSAGE_INFO"
-echo "Verificando se o branch '$currentBranchName' corresponde a um branch valido"
+echo "Verificando se o branch atual '$currentBranchName' nao esta desanexado (detached)"
 echo ""
 
-#Tratamento para contemplar as seguintes situacoes:
-#(no branch) - commit
-#(no branch, rebasing stable) - rebase
-#(HEAD detached at 9.9.9) - tag
+# Tratamento para contemplar as seguintes situacoes:
+# (no branch) = commit
+# (no branch, rebasing branchName) = rebase
+# (HEAD detached at tagName) = tag
 if [[ "$currentBranchName" =~ "(" ]]; then
 	echo "$tagHookName $MESSAGE_ERROR"
-	echo "Branch invalido: '$currentBranchName'!"
-	echo "Portanto, deve-se posicionar em um branch valido antes de tentar fazer o commit novamente."
+	echo "Current branch detached: '$currentBranchName'!"
 	exit 1
 fi
 
