@@ -210,7 +210,7 @@ validateGSKVersion
 showVariables
 
 echo "$tagHookName $MESSAGE_INFO"
-echo "Verificando se o branch atual '$currentBranchName' nao esta desanexado (detached)"
+echo "Verificando se o branch atual '$currentBranchName' esta em estado 'detached'"
 echo ""
 
 # Tratamento para contemplar as seguintes situacoes:
