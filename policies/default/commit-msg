@@ -158,7 +158,7 @@ validateGSKVersion () {
 			echo ""
 		else
 			echo "$tagHookName $MESSAGE_INFO"
-			echo "Nao foi possivel verificar a versao do GSK, pois ele NAO esta instalado!"
+			echo "Nao foi possivel verificar a versao do GSK, pois ele nao esta instalado!"
 			echo ""
 		fi
 	fi
@@ -255,7 +255,7 @@ fi
 
 if ! [[ "$commitMessage" =~ ^"${prefixCurrentBranch}" ]]; then
 	echo "$tagHookName $MESSAGE_ERROR"
-	echo "O prefixo do branch informado na mensagem do commit NAO corresponde ao nome do branch atual '$currentBranchName'!"
+	echo "O prefixo do branch informado na mensagem do commit nao corresponde ao nome do branch atual '$currentBranchName'!"
 	echo "Mensagem do commit:"
 	echo "$commitMessage"
 	echo "Exemplo do padrao esperado: '$commitMessagePattern'"
@@ -290,7 +290,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 
 				if ! [[ "$commitMessage" =~ "#$taskIdBranchName" ]]; then
 					echo "$tagHookName $MESSAGE_ERROR"
-					echo "O id da tarefa, informado na mensagem do commit, NAO esta de acordo com o nome do branch!"
+					echo "O id da tarefa, informado na mensagem do commit, nao esta de acordo com o nome do branch!"
 					echo "Portanto, deve-se ajusta-la antes de tentar fazer o commit novamente."
 					echo "Branch: $currentBranchName"
 					echo "Id da tarefa atual: #$taskIdCommitMessage"
@@ -308,7 +308,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 
 			if ! [[ "$commitMessage" =~ $REGEX_TASK_ID_MESSAGE ]]; then
 				echo "$tagHookName $MESSAGE_ERROR"
-				echo "A mensagem do commit NAO esta no padrao esperado!"
+				echo "A mensagem do commit nao esta no padrao esperado!"
 				echo "Portanto, deve-se ajusta-la antes de tentar fazer o commit novamente."
 				echo "Exemplo: #TaskId - Message (a mensagem deve conter no minimo 15 caracteres)"
 				echo "Regex: $REGEX_TASK_ID_MESSAGE"
@@ -324,7 +324,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 
 			if [[ "$commitMessage" =~ "#$taskIdBranchName" ]]; then
 				echo "$tagHookName $MESSAGE_ERROR"
-				echo "A tarefa epica (parent) NAO pode ser informada na mensagem do commit!"
+				echo "A tarefa epica (parent) nao pode ser informada na mensagem do commit!"
 				echo "Portanto, deve-se informar uma tarefa filha (child) antes de tentar fazer o commit novamente."
 				echo "Id da tarefa epica: #$taskIdBranchName"
 				echo "$MESSAGE_POLICY_TAGS"
@@ -337,7 +337,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 		if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktbWVzc2FnZS1wYXR0ZXJuCg== | "$pathBase64" -d)" ]] ); then
 			if [ "$currentBranchName" == "$BRANCH_DEVELOP" ] || [ "$currentBranchName" == "$BRANCH_PRODUCTION" ] || [ "$currentBranchName" == "$BRANCH_MAIN" ] || [ "$currentBranchName" == "$BRANCH_MAIN_RC" ]; then
 				echo "$tagHookName $MESSAGE_ERROR"
-				echo "NAO eh permitido fazer um commit diretamente no branch '$currentBranchName'!"
+				echo "Nao eh permitido fazer um commit diretamente no branch '$currentBranchName'!"
 				exit 1
 			fi
 		fi
@@ -421,7 +421,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 
 				if [ -n "$fileWithConflictMarker" ]; then
 					echo "$tagHookName $MESSAGE_ERROR"
-					echo "NAO eh permitido fazer commit de um arquivo com marcadores de conflitos (<<<<<<<, ======= e >>>>>>>)!"
+					echo "Nao eh permitido fazer commit de um arquivo com marcadores de conflitos (<<<<<<<, ======= e >>>>>>>)!"
 					echo "Portanto, resolva os conflitos e tente fazer o commit novamente."
 					echo "Arquivo: $filePath"
 					echo "$MESSAGE_POLICY_TAGS"
