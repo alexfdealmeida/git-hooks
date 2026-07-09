@@ -62,7 +62,7 @@ if [ "$isBranch" = true ]; then
 			"
 		fi
 	else
-		$GSK_CHECKOUT_SUBMODULES --no-show-current-branch-message
+		$GSK_CHECKOUT_SUBMODULES
 	fi
 fi
 
