@@ -11,7 +11,7 @@ if [ "$checkoutType" = "1" ]; then
 	vCommandGitFetch="git fetch --recurse-submodules --prune"
 	GSK_CHECKOUT_SUBMODULES="gsk_checkout_submodules"
 
-	currentBranchName="$(git branch | grep ^* | sed -e '/^\*/!d' -e 's|*||' -e 's| ||')"
+	currentBranchName="$(git branch | sed -e '/^\*/!d' -e 's|*||' -e 's| ||')"
 
 	echo "$tagHookName Current branch: $currentBranchName"
 
