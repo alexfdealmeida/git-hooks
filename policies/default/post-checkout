@@ -2,7 +2,6 @@
 
 tagHookName="[post-checkout]"
 warningMessage="info: "
-copyGitHooks="copy-git-hooks.sh"
 vFileGitModules=".gitmodules"
 vCommandGitFetch="git fetch --recurse-submodules --prune"
 GSK_CHECKOUT_SUBMODULES="gsk_checkout_submodules"
@@ -65,7 +64,3 @@ if [ "$isBranch" = true ]; then
 		$GSK_CHECKOUT_SUBMODULES
 	fi
 fi
-
-echo "$tagHookName $warningMessage"
-echo "Checking prerequisites for updating the hooks"
-[ "$rebasing" = true ] && echo "Skipped" || ( [ -f "$copyGitHooks" ] && chmod +x "$copyGitHooks" && echo "Running the script '$copyGitHooks'" && ./$copyGitHooks --update-only-git-hooks )
