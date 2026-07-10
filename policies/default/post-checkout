@@ -1,15 +1,13 @@
 #!/bin/sh
 
 tagHookName="[post-checkout]"
-warningMessage="info: "
 vFileGitModules=".gitmodules"
 vCommandGitFetch="git fetch --recurse-submodules --prune"
 GSK_CHECKOUT_SUBMODULES="gsk_checkout_submodules"
 
 currentBranchName="$(git branch | grep ^* | sed "s/*//" | sed "s/ //")"
 
-echo "$tagHookName $warningMessage"
-echo "Current branch: $currentBranchName"
+echo "$tagHookName Current branch: $currentBranchName"
 
 isBranch=true
 rebasing=false
@@ -33,8 +31,7 @@ if [ "$isBranch" = true ]; then
 	fi
 
 	if [ "$gskCheckoutSubmoduleExists" == false ]; then
-		echo "$tagHookName $warningMessage"
-		echo "Fetching: '$vCommandGitFetch'"
+		echo "$tagHookName Fetching: '$vCommandGitFetch'"
 		$vCommandGitFetch
 
 		if [ $? -ne 0 ]; then
@@ -42,8 +39,7 @@ if [ "$isBranch" = true ]; then
 		fi
 
 		if [ -f $vFileGitModules ]; then
-			echo "$tagHookName $warningMessage"
-			echo "Checking out the submodules"
+			echo "$tagHookName Checking out the submodules"
 			git submodule foreach --recursive "
 				branchSubmodule=\$(git config -f \"\$toplevel/.gitmodules\" submodule.\$name.branch);
 
