@@ -6,14 +6,6 @@ vFileGitModules=".gitmodules"
 vCommandGitFetch="git fetch --recurse-submodules --prune"
 GSK_CHECKOUT_SUBMODULES="gsk_checkout_submodules"
 
-gskCheckoutSubmoduleExists=false
-
-command -v $GSK_CHECKOUT_SUBMODULES > /dev/null 2>&1
-
-if [ $? -eq 0 ]; then
-	gskCheckoutSubmoduleExists=true
-fi
-
 currentBranchName="$(git branch | grep ^* | sed "s/*//" | sed "s/ //")"
 
 echo "$tagHookName $warningMessage"
@@ -32,6 +24,14 @@ if [[ "$currentBranchName" =~ "(" ]]; then
 fi
 
 if [ "$isBranch" = true ]; then
+	gskCheckoutSubmoduleExists=false
+
+	command -v $GSK_CHECKOUT_SUBMODULES > /dev/null 2>&1
+
+	if [ $? -eq 0 ]; then
+		gskCheckoutSubmoduleExists=true
+	fi
+
 	if [ "$gskCheckoutSubmoduleExists" == false ]; then
 		echo "$tagHookName $warningMessage"
 		echo "Fetching: '$vCommandGitFetch'"
