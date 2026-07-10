@@ -35,7 +35,6 @@ BRANCH_PREFIX="Branch:"
 
 # Messages
 MESSAGE_ERROR="ERROR: "
-MESSAGE_INFO="info: "
 MESSAGE_POLICY_TAGS="Para verificar as tags disponiveis na politica de commits, utilize o script 'gsk show_commit_policy_tags'."
 
 # RegEx
@@ -138,8 +137,7 @@ fi
 validateGSKVersion () {
 	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktZ3NrLXZlcnNpb24K | "$pathBase64" -d)" ]]; then
 		if [ "$gskInstalled" == true ]; then
-			echo "$tagHookName $MESSAGE_INFO"
-			echo "Verificando a versao do GSK"
+			echo "$tagHookName Verificando a versao do GSK"
 			echo ""
 
 			currentVersionGSK="$(gsk_version_short)"
@@ -157,16 +155,14 @@ validateGSKVersion () {
 			gsk_version
 			echo ""
 		else
-			echo "$tagHookName $MESSAGE_INFO"
-			echo "Nao foi possivel verificar a versao do GSK, pois ele nao esta instalado!"
+			echo "$tagHookName Nao foi possivel verificar a versao do GSK, pois ele nao esta instalado!"
 			echo ""
 		fi
 	fi
 }
 
 showVariables () {
-	echo "$tagHookName $MESSAGE_INFO"
-	echo "Exibindo valor das variaveis"
+	echo "$tagHookName Exibindo valor das variaveis"
 	echo "author: $author"
 	echo "currentBranchName: $currentBranchName"
 	echo "gskInstalled: $gskInstalled"
@@ -209,8 +205,7 @@ validateGSKVersion
 
 showVariables
 
-echo "$tagHookName $MESSAGE_INFO"
-echo "Verificando se o branch atual '$currentBranchName' esta em estado 'detached'"
+echo "$tagHookName Verificando se o branch atual '$currentBranchName' esta em estado 'detached'"
 echo ""
 
 # Tratamento para contemplar as seguintes situacoes:
@@ -223,24 +218,21 @@ if [[ "$currentBranchName" =~ "(" ]]; then
 	exit 1
 fi
 
-echo "$tagHookName $MESSAGE_INFO"
-echo "Verificando se a mensagem do commit possui o prefixo '$prefixCurrentBranch'"
+echo "$tagHookName Verificando se a mensagem do commit possui o prefixo '$prefixCurrentBranch'"
 echo ""
 
 if ! [[ "$commitMessage" =~ $REGEX_PREFIX_BRANCH ]]; then
 	if [ -n "$taskIdBranchName" ] && [ "$isEpicBranch" == false ]; then
 		if ! [[ "$commitMessage" =~ "#$taskIdBranchName" ]] && ! [[ "$commitMessage" =~ $REGEX_TASK_ID_ONLY_NUMBERS ]]; then
 			echo "#$taskIdBranchName"" - $commitMessage" > "$1"
-			echo "$tagHookName $MESSAGE_INFO"
 			setCommitMessage "$1"
-			echo "Adicionada a tarefa #$taskIdBranchName no inicio da mensagem do commit"
+			echo "$tagHookName Adicionada a tarefa #$taskIdBranchName no inicio da mensagem do commit"
 		fi
 	fi
 
 	echo "${prefixCurrentBranch}; $commitMessage" > "$1"
 	setCommitMessage "$1"
-	echo "$tagHookName $MESSAGE_INFO"
-	echo "Adicionado o prefixo '$prefixCurrentBranch' na mensagem do commit"
+	echo "$tagHookName Adicionado o prefixo '$prefixCurrentBranch' na mensagem do commit"
 	echo "Mensagem do commit atualizada:"
 	echo "$commitMessage"
 	echo ""
@@ -263,8 +255,7 @@ if ! [[ "$commitMessage" =~ ^"${prefixCurrentBranch}" ]]; then
 fi
 
 if [[ "$commitMessage" =~ $REGEX_TASK_ID ]]; then
-	echo "$tagHookName $MESSAGE_INFO"
-	echo "Verificando se o id da tarefa informado na mensagem do commit contem apenas numeros"
+	echo "$tagHookName Verificando se o id da tarefa informado na mensagem do commit contem apenas numeros"
 	echo ""
 
 	taskIdCommitMessage="$(echo $commitMessage | cut -d '#' -f 2 | cut -d '-' -f 1 | sed 's/ //g')"
@@ -284,8 +275,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktbWVzc2FnZS1wYXR0ZXJuCg== | "$pathBase64" -d)" ]]; then
 		if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktdGFzay1pZC1jb21taXQtbWVzc2FnZS1tYXRjaGVzLWJyYW5jaC1uYW1lCg== | "$pathBase64" -d)" ]]; then
 			if [ -n "$taskIdBranchName" ] && [ "$isEpicBranch" == false ]; then
-				echo "$tagHookName $MESSAGE_INFO"
-				echo "Verificando se a tarefa #$taskIdCommitMessage, informada na mensagem do commit, corresponde ao esperado no branch '$currentBranchName'"
+				echo "$tagHookName Verificando se a tarefa #$taskIdCommitMessage, informada na mensagem do commit, corresponde ao esperado no branch '$currentBranchName'"
 				echo ""
 
 				if ! [[ "$commitMessage" =~ "#$taskIdBranchName" ]]; then
@@ -302,8 +292,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 		fi
 
 		if [ "$repositoryUsesGSKFlow" == true ]; then
-			echo "$tagHookName $MESSAGE_INFO"
-			echo "Verificando se a mensagem do commit esta no padrao esperado '$commitMessagePattern'"
+			echo "$tagHookName Verificando se a mensagem do commit esta no padrao esperado '$commitMessagePattern'"
 			echo ""
 
 			if ! [[ "$commitMessage" =~ $REGEX_TASK_ID_MESSAGE ]]; then
@@ -318,8 +307,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 		fi
 
 		if [ "$isEpicBranch" == true ]; then
-			echo "$tagHookName $MESSAGE_INFO"
-			echo "Verificando se o id da tarefa epica (parent) foi informado na mensagem do commit"
+			echo "$tagHookName Verificando se o id da tarefa epica (parent) foi informado na mensagem do commit"
 			echo ""
 
 			if [[ "$commitMessage" =~ "#$taskIdBranchName" ]]; then
@@ -347,8 +335,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 		configBranchRemote="$(git config --local --get branch.$currentBranchName.remote)"
 
 		if [ -n "$configBranchRemote" ]; then
-			echo "$tagHookName $MESSAGE_INFO"
-			echo "Buscando referencias do branch '$currentBranchName' no repositorio remoto"
+			echo "$tagHookName Buscando referencias do branch '$currentBranchName' no repositorio remoto"
 			git fetch origin $currentBranchName
 
 			if [ "$?" -ne "0" ]; then
@@ -367,8 +354,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 	#echo "$listFiles"
 
 	if [ -n "$listFiles" ]; then
-		echo "$tagHookName $MESSAGE_INFO"
-		echo "Verificando regras de commit no(s) arquivo(s):"
+		echo "$tagHookName Verificando regras de commit no(s) arquivo(s):"
 
 		while read -r line; do
 			status="$(echo $line | cut -d '|' -f 1)"
