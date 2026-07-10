@@ -1,62 +1,69 @@
 #!/bin/sh
 
-tagHookName="[post-checkout]"
-vFileGitModules=".gitmodules"
-vCommandGitFetch="git fetch --recurse-submodules --prune"
-GSK_CHECKOUT_SUBMODULES="gsk_checkout_submodules"
+checkoutType="$3"
 
-currentBranchName="$(git branch | grep ^* | sed "s/*//" | sed "s/ //")"
+# checkoutType:
+# 0 - checkout file (git checkout -- <file>)
+# 1 - checkout branch
+if [ "$checkoutType" = "1" ]; then
+	tagHookName="[post-checkout]"
+	vFileGitModules=".gitmodules"
+	vCommandGitFetch="git fetch --recurse-submodules --prune"
+	GSK_CHECKOUT_SUBMODULES="gsk_checkout_submodules"
 
-echo "$tagHookName Current branch: $currentBranchName"
+	currentBranchName="$(git branch | grep ^* | sed "s/*//" | sed "s/ //")"
 
-isBranch=true
-rebasing=false
+	echo "$tagHookName Current branch: $currentBranchName"
 
-if [[ "$currentBranchName" =~ "(" ]]; then
-	isBranch=false
+	isBranch=true
+	rebasing=false
 
-	# (no branch, rebasing branchName)
-	if [[ "$currentBranchName" =~ "rebasing" ]]; then
-		rebasing=true
-	fi
-fi
+	if [[ "$currentBranchName" =~ "(" ]]; then
+		isBranch=false
 
-if [ "$isBranch" = true ]; then
-	gskCheckoutSubmoduleExists=false
-
-	command -v $GSK_CHECKOUT_SUBMODULES > /dev/null 2>&1
-
-	if [ $? -eq 0 ]; then
-		gskCheckoutSubmoduleExists=true
+		# (no branch, rebasing branchName)
+		if [[ "$currentBranchName" =~ "rebasing" ]]; then
+			rebasing=true
+		fi
 	fi
 
-	if [ "$gskCheckoutSubmoduleExists" == false ]; then
-		echo "$tagHookName Fetching: '$vCommandGitFetch'"
-		$vCommandGitFetch
+	if [ "$isBranch" = true ]; then
+		gskCheckoutSubmoduleExists=false
 
-		if [ $? -ne 0 ]; then
-			echo -e "\033[1;31mNAO foi possivel buscar as referencias dos branches no repositorio remoto!\033[0m"
+		command -v $GSK_CHECKOUT_SUBMODULES > /dev/null 2>&1
+
+		if [ $? -eq 0 ]; then
+			gskCheckoutSubmoduleExists=true
 		fi
 
-		if [ -f $vFileGitModules ]; then
-			echo "$tagHookName Checking out the submodules"
-			git submodule foreach --recursive "
-				branchSubmodule=\$(git config -f \"\$toplevel/.gitmodules\" submodule.\$name.branch);
+		if [ "$gskCheckoutSubmoduleExists" == false ]; then
+			echo "$tagHookName Fetching: '$vCommandGitFetch'"
+			$vCommandGitFetch
 
-				if [ \"\$branchSubmodule\" = \".\" ]; then
-					cd \"\$toplevel\";
-					branchSuperproject=\$(git branch --show-current);
-					cd \"\$sm_path\";
-					
-					git -c core.hooksPath=/dev/null checkout \$branchSuperproject || echo NAO foi possivel posicionar no branch \$branchSuperproject no submodule \"\$sm_path\"!;
-				elif [ -n \"\$branchSubmodule\" ]; then
-					git -c core.hooksPath=/dev/null checkout \$branchSubmodule || echo NAO foi possivel posicionar no branch \$branchSubmodule no submodule \"\$sm_path\"!;
-				else
-					echo Nao foi possivel posicionar no branch correspondente no submodule \"\$sm_path\", pois o branch nao foi especificado no arquivo .gitmodules do superprojeto!;
-				fi;
-			"
+			if [ $? -ne 0 ]; then
+				echo -e "\033[1;31mNAO foi possivel buscar as referencias dos branches no repositorio remoto!\033[0m"
+			fi
+
+			if [ -f $vFileGitModules ]; then
+				echo "$tagHookName Checking out the submodules"
+				git submodule foreach --recursive "
+					branchSubmodule=\$(git config -f \"\$toplevel/.gitmodules\" submodule.\$name.branch);
+
+					if [ \"\$branchSubmodule\" = \".\" ]; then
+						cd \"\$toplevel\";
+						branchSuperproject=\$(git branch --show-current);
+						cd \"\$sm_path\";
+						
+						git -c core.hooksPath=/dev/null checkout \$branchSuperproject || echo NAO foi possivel posicionar no branch \$branchSuperproject no submodule \"\$sm_path\"!;
+					elif [ -n \"\$branchSubmodule\" ]; then
+						git -c core.hooksPath=/dev/null checkout \$branchSubmodule || echo NAO foi possivel posicionar no branch \$branchSubmodule no submodule \"\$sm_path\"!;
+					else
+						echo Nao foi possivel posicionar no branch correspondente no submodule \"\$sm_path\", pois o branch nao foi especificado no arquivo .gitmodules do superprojeto!;
+					fi;
+				"
+			fi
+		else
+			$GSK_CHECKOUT_SUBMODULES
 		fi
-	else
-		$GSK_CHECKOUT_SUBMODULES
 	fi
 fi
