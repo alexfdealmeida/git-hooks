@@ -1,9 +1,7 @@
 #!/bin/sh
 
 tagHookName="[post-merge]"
-warningMessage="info: "
 copyGitHooks="copy-git-hooks.sh"
 
-echo "$tagHookName $warningMessage"
-echo "Checking prerequisites for updating the hooks"
+echo "$tagHookName Checking prerequisites for updating the hooks"
 [ "$(basename $(pwd))" != "git-hooks" ] && echo "Skipped" || ( [ -f "$copyGitHooks" ] && chmod +x "$copyGitHooks" && echo "Running the script '$copyGitHooks'" && ./$copyGitHooks --update-only-git-hooks )
