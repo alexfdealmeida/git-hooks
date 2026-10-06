@@ -212,7 +212,7 @@ echo ""
 # (no branch) = commit
 # (no branch, rebasing branchName) = rebase
 # (HEAD detached at tagName) = tag
-if [[ "$currentBranchName" =~ "(" ]]; then
+if [[ "$currentBranchName" == *"("* ]]; then
 	echo "$tagHookName $MESSAGE_ERROR"
 	echo "Current branch detached: '$currentBranchName'!"
 	exit 1
@@ -236,7 +236,7 @@ if ! [[ "$commitMessage" =~ $REGEX_PREFIX_BRANCH ]]; then
 	echo "Mensagem do commit atualizada:"
 	echo "$commitMessage"
 	echo ""
-elif ! [[ "$commitMessage" =~ ";" ]]; then
+elif ! [[ "$commitMessage" == *";"* ]]; then
 	echo "$tagHookName $MESSAGE_ERROR"
 	echo "O prefixo do branch informado na mensagem do commit esta invalido!"
 	echo "Mensagem do commit:"
@@ -361,7 +361,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 			status="${status^^}"
 
 			# Se o status for 'Rename'...
-			if [[ "$status" =~ "R" ]]; then
+			if [[ "$status" == *R* ]]; then
 				# ... o novo nome do arquivo, corresponde a terceira posicao separada por pipe '|'
 				# Exemplos:
 				#R100|Mapas/classes/integracao/layout/agriQ/IntegracaoAgriQ.mm|Mapas/classes/integracao/layout/agriqs/IntegracaoAgriQ.mm
