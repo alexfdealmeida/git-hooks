@@ -103,7 +103,7 @@ if [[ "$currentBranchName" =~ $REGEX_BUGFIX_BRANCH ]] || [[ "$currentBranchName"
 		isEpicBranch=true
 	fi
 elif [[ "$currentBranchName" =~ $REGEX_HOTFIX_VERSION_BRANCH ]] || [[ "$currentBranchName" =~ $REGEX_HOTFIX_PRODUCTION_VERSION_BRANCH ]]; then
-	if [[ "$currentBranchName" =~ ^temp ]]; then
+	if [[ "$currentBranchName" == temp* ]]; then
 		taskIdBranchName="$(echo "$currentBranchName" | cut -d '/' -f 6)"
 	else
 		taskIdBranchName="$(echo "$currentBranchName" | cut -d '/' -f 5)"
