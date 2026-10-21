@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 tagHookName="[post-merge]"
 copyGitHooks="copy-git-hooks.sh"

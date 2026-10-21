@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 tagHookName="[pre-commit]"
 copyGitHooks="copy-git-hooks.sh"
