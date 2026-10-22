@@ -245,7 +245,7 @@ elif ! [[ "$commitMessage" == *";"* ]]; then
 	exit 1
 fi
 
-if ! [[ "$commitMessage" =~ ^"${prefixCurrentBranch}" ]]; then
+if ! [[ "$commitMessage" == "$prefixCurrentBranch"* ]]; then
 	echo "$tagHookName $MESSAGE_ERROR"
 	echo "O prefixo do branch informado na mensagem do commit nao corresponde ao nome do branch atual '$currentBranchName'!"
 	echo "Mensagem do commit:"
