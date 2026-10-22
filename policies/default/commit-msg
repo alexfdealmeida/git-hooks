@@ -63,18 +63,15 @@ REQUIRED_VERSION_GSK="19.0.10"
 pathGitUsrBin64="/c/Program Files/Git/usr/bin"
 pathGitUsrBin32="/c/Program Files (x86)/Git/usr/bin"
 
-pathBase64="base64"
 pathPrintf="printf"
 pathSort="sort"
 pathHead="head"
 
 if [ -d "$pathGitUsrBin64" ]; then
-	pathBase64="$pathGitUsrBin64/$pathBase64.exe"
 	pathPrintf="$pathGitUsrBin64/$pathPrintf.exe"
 	pathSort="$pathGitUsrBin64/$pathSort.exe"
 	pathHead="$pathGitUsrBin64/$pathHead.exe"
 elif [ -d "$pathGitUsrBin32" ]; then
-	pathBase64="$pathGitUsrBin32/$pathBase64.exe"
 	pathPrintf="$pathGitUsrBin32/$pathPrintf.exe"
 	pathSort="$pathGitUsrBin32/$pathSort.exe"
 	pathHead="$pathGitUsrBin32/$pathHead.exe"
@@ -135,7 +132,7 @@ else
 fi
 
 validateGSKVersion () {
-	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktZ3NrLXZlcnNpb24K | "$pathBase64" -d)" ]]; then
+	if ! [[ "$commitMessage" =~ "--no-verify-gsk-version" ]]; then
 		if [ "$gskInstalled" == true ]; then
 			echo "$tagHookName Verificando a versao do GSK"
 			echo ""
@@ -168,7 +165,6 @@ showVariables () {
 	echo "gskInstalled: $gskInstalled"
 	echo "isEpicBranch: $isEpicBranch"
 	echo "isSCMProfile: $isSCMProfile"
-	echo "pathBase64: $pathBase64"
 	echo "pathPrintf: $pathPrintf"
 	echo "pathSort: $pathSort"
 	echo "pathHead: $pathHead"
@@ -180,7 +176,7 @@ showVariables () {
 }
 
 showProtectedFilesMessage () {
-	if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcG9saWNpZXMtcHJvdGVjdGVkLWZpbGVzCg== | "$pathBase64" -d)" ]] ); then
+	if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "--no-verify-policies-protected-files" ]] ); then
 		echo "$tagHookName $MESSAGE_ERROR"
 		echo "Arquivo protegido pelas politicas de seguranca da GCS!"
 		echo "Arquivo: $filePath"
@@ -190,7 +186,7 @@ showProtectedFilesMessage () {
 }
 
 showRestrictedFilesMessage () {
-	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcG9saWNpZXMtcmVzdHJpY3RlZC1maWxlcwo= | "$pathBase64" -d)" ]]; then
+	if ! [[ "$commitMessage" =~ "--no-verify-policies-restricted-files" ]]; then
 		echo "$tagHookName $MESSAGE_ERROR"
 		echo "Arquivo restrito pelas politicas de seguranca da GCS!"
 		echo "Arquivo: $filePath"
@@ -271,9 +267,9 @@ else
 	taskIdCommitMessage=""
 fi
 
-if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcG9saWNpZXMtaG9vawo= | "$pathBase64" -d)" ]] ); then
-	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktbWVzc2FnZS1wYXR0ZXJuCg== | "$pathBase64" -d)" ]]; then
-		if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktdGFzay1pZC1jb21taXQtbWVzc2FnZS1tYXRjaGVzLWJyYW5jaC1uYW1lCg== | "$pathBase64" -d)" ]]; then
+if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "--no-verify-policies-hook" ]] ); then
+	if ! [[ "$commitMessage" =~ "--no-verify-message-pattern" ]]; then
+		if ! [[ "$commitMessage" =~ "--no-verify-task-id-commit-message-matches-branch-name" ]]; then
 			if [ -n "$taskIdBranchName" ] && [ "$isEpicBranch" == false ]; then
 				echo "$tagHookName Verificando se a tarefa #$taskIdCommitMessage, informada na mensagem do commit, corresponde ao esperado no branch '$currentBranchName'"
 				echo ""
@@ -322,7 +318,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 	fi
 
 	if [ "$repositoryUsesGSKFlow" == true ]; then
-		if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktbWVzc2FnZS1wYXR0ZXJuCg== | "$pathBase64" -d)" ]] ); then
+		if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "--no-verify-message-pattern" ]] ); then
 			if [ "$currentBranchName" == "$BRANCH_DEVELOP" ] || [ "$currentBranchName" == "$BRANCH_PRODUCTION" ] || [ "$currentBranchName" == "$BRANCH_MAIN" ] || [ "$currentBranchName" == "$BRANCH_MAIN_RC" ]; then
 				echo "$tagHookName $MESSAGE_ERROR"
 				echo "Nao eh permitido fazer um commit diretamente no branch '$currentBranchName'!"
@@ -331,7 +327,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 		fi
 	fi
 
-	if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktcmVtb3RlLWJyYW5jaC1kZWxldGVkCg== | "$pathBase64" -d)" ]]; then
+	if ! [[ "$commitMessage" =~ "--no-verify-remote-branch-deleted" ]]; then
 		configBranchRemote="$(git config --local --get branch.$currentBranchName.remote)"
 
 		if [ -n "$configBranchRemote" ]; then
@@ -401,7 +397,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "$(echo LS1uby12ZXJ
 				showRestrictedFilesMessage
 			fi
 
-			if ! [[ "$commitMessage" =~ "$(echo LS1uby12ZXJpZnktY29uZmxpY3QtbWFya2VyCg== | "$pathBase64" -d)" ]]; then
+			if ! [[ "$commitMessage" =~ "--no-verify-conflict-marker" ]]; then
 				# Contemplar '<<<<<<< HEAD' (commit) e '<<<<<<< Updated upstream' (stash)
 				fileWithConflictMarker="$(git grep --name-only -E "^(<<<<<<<|>>>>>>>)|^=======$" -- "$filePath")"
 
