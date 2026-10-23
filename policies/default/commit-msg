@@ -125,7 +125,7 @@ setCommitMessage "$1"
 # Ao adicionar um repositorio, deve-se manter o ";" no final da string, para evitar resultado "falso-positivo"
 repositoriesGSKFlow=";"
 
-if [[ "$repositoriesGSKFlow" =~ "$repositoryName;" ]]; then
+if [[ "$repositoriesGSKFlow" == *"$repositoryName;"* ]]; then
 	repositoryUsesGSKFlow=true
 else
 	repositoryUsesGSKFlow=false
