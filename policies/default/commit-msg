@@ -132,7 +132,7 @@ else
 fi
 
 validateGSKVersion () {
-	if ! [[ "$commitMessage" =~ "--no-verify-gsk-version" ]]; then
+	if ! [[ "$commitMessage" == *"--no-verify-gsk-version"* ]]; then
 		if [ "$gskInstalled" == true ]; then
 			echo "$tagHookName Verificando a versao do GSK"
 			echo ""
@@ -176,7 +176,7 @@ showVariables () {
 }
 
 showProtectedFilesMessage () {
-	if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "--no-verify-policies-protected-files" ]] ); then
+	if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" == *"--no-verify-policies-protected-files"* ]] ); then
 		echo "$tagHookName $MESSAGE_ERROR"
 		echo "Arquivo protegido pelas politicas de seguranca da GCS!"
 		echo "Arquivo: $filePath"
@@ -186,7 +186,7 @@ showProtectedFilesMessage () {
 }
 
 showRestrictedFilesMessage () {
-	if ! [[ "$commitMessage" =~ "--no-verify-policies-restricted-files" ]]; then
+	if ! [[ "$commitMessage" == *"--no-verify-policies-restricted-files"* ]]; then
 		echo "$tagHookName $MESSAGE_ERROR"
 		echo "Arquivo restrito pelas politicas de seguranca da GCS!"
 		echo "Arquivo: $filePath"
@@ -219,7 +219,7 @@ echo ""
 
 if ! [[ "$commitMessage" =~ $REGEX_PREFIX_BRANCH ]]; then
 	if [ -n "$taskIdBranchName" ] && [ "$isEpicBranch" == false ]; then
-		if ! [[ "$commitMessage" =~ "#$taskIdBranchName" ]] && ! [[ "$commitMessage" =~ $REGEX_TASK_ID_ONLY_NUMBERS ]]; then
+		if ! [[ "$commitMessage" == *"#${taskIdBranchName}"* ]] && ! [[ "$commitMessage" =~ $REGEX_TASK_ID_ONLY_NUMBERS ]]; then
 			echo "#$taskIdBranchName"" - $commitMessage" > "$1"
 			setCommitMessage "$1"
 			echo "$tagHookName Adicionada a tarefa #$taskIdBranchName no inicio da mensagem do commit"
@@ -267,14 +267,14 @@ else
 	taskIdCommitMessage=""
 fi
 
-if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "--no-verify-policies-hook" ]] ); then
-	if ! [[ "$commitMessage" =~ "--no-verify-message-pattern" ]]; then
-		if ! [[ "$commitMessage" =~ "--no-verify-task-id-commit-message-matches-branch-name" ]]; then
+if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" == *"--no-verify-policies-hook"* ]] ); then
+	if ! [[ "$commitMessage" == *"--no-verify-message-pattern"* ]]; then
+		if ! [[ "$commitMessage" == *"--no-verify-task-id-commit-message-matches-branch-name"* ]]; then
 			if [ -n "$taskIdBranchName" ] && [ "$isEpicBranch" == false ]; then
 				echo "$tagHookName Verificando se a tarefa #$taskIdCommitMessage, informada na mensagem do commit, corresponde ao esperado no branch '$currentBranchName'"
 				echo ""
 
-				if ! [[ "$commitMessage" =~ "#$taskIdBranchName" ]]; then
+				if ! [[ "$commitMessage" == *"#${taskIdBranchName}"* ]]; then
 					echo "$tagHookName $MESSAGE_ERROR"
 					echo "O id da tarefa, informado na mensagem do commit, nao esta de acordo com o nome do branch!"
 					echo "Portanto, deve-se ajusta-la antes de tentar fazer o commit novamente."
@@ -306,7 +306,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "--no-verify-polici
 			echo "$tagHookName Verificando se o id da tarefa epica (parent) foi informado na mensagem do commit"
 			echo ""
 
-			if [[ "$commitMessage" =~ "#$taskIdBranchName" ]]; then
+			if [[ "$commitMessage" == *"#${taskIdBranchName}"* ]]; then
 				echo "$tagHookName $MESSAGE_ERROR"
 				echo "A tarefa epica (parent) nao pode ser informada na mensagem do commit!"
 				echo "Portanto, deve-se informar uma tarefa filha (child) antes de tentar fazer o commit novamente."
@@ -318,7 +318,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "--no-verify-polici
 	fi
 
 	if [ "$repositoryUsesGSKFlow" == true ]; then
-		if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "--no-verify-message-pattern" ]] ); then
+		if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" == *"--no-verify-message-pattern"* ]] ); then
 			if [ "$currentBranchName" == "$BRANCH_DEVELOP" ] || [ "$currentBranchName" == "$BRANCH_PRODUCTION" ] || [ "$currentBranchName" == "$BRANCH_MAIN" ] || [ "$currentBranchName" == "$BRANCH_MAIN_RC" ]; then
 				echo "$tagHookName $MESSAGE_ERROR"
 				echo "Nao eh permitido fazer um commit diretamente no branch '$currentBranchName'!"
@@ -327,7 +327,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "--no-verify-polici
 		fi
 	fi
 
-	if ! [[ "$commitMessage" =~ "--no-verify-remote-branch-deleted" ]]; then
+	if ! [[ "$commitMessage" == *"--no-verify-remote-branch-deleted"* ]]; then
 		configBranchRemote="$(git config --local --get branch.$currentBranchName.remote)"
 
 		if [ -n "$configBranchRemote" ]; then
@@ -397,7 +397,7 @@ if ! ( [ "$isSCMProfile" == true ] && [[ "$commitMessage" =~ "--no-verify-polici
 				showRestrictedFilesMessage
 			fi
 
-			if ! [[ "$commitMessage" =~ "--no-verify-conflict-marker" ]]; then
+			if ! [[ "$commitMessage" == *"--no-verify-conflict-marker"* ]]; then
 				# Contemplar '<<<<<<< HEAD' (commit) e '<<<<<<< Updated upstream' (stash)
 				fileWithConflictMarker="$(git grep --name-only -E "^(<<<<<<<|>>>>>>>)|^=======$" -- "$filePath")"
 
