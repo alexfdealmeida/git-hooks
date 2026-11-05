@@ -3,5 +3,5 @@
 copyGitHooksScript="copy-git-hooks.sh"
 
 echo "[pre-push] Checking prerequisites for updating the hooks"
-# O 'exit $?' evita que o bash continue lendo este arquivo caso ele seja sobrescrito pela auto-atualização.
+# O 'exit $?' evita que o bash continue lendo este arquivo caso ele seja sobrescrito pela auto-atualizacao.
 [ "$(basename -s .git "$(git config --local --get remote.origin.url)")" != "git-hooks" ] && echo "Skipped" || ( [ -f "$copyGitHooksScript" ] && chmod +x "$copyGitHooksScript" && echo "Running the script '$copyGitHooksScript'" && ./$copyGitHooksScript --update-only-git-hooks ); exit $?
