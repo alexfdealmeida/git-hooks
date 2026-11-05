@@ -1,7 +1,7 @@
 #!/bin/bash
 
-tagHookName="[post-merge]"
-copyGitHooks="copy-git-hooks.sh"
+copyGitHooksScript="copy-git-hooks.sh"
 
-echo "$tagHookName Checking prerequisites for updating the hooks"
-[ "$(basename $(pwd))" != "git-hooks" ] && echo "Skipped" || ( [ -f "$copyGitHooks" ] && chmod +x "$copyGitHooks" && echo "Running the script '$copyGitHooks'" && ./$copyGitHooks --update-only-git-hooks )
+echo "[post-merge] Checking prerequisites for updating the hooks"
+# O 'exit $?' evita que o bash continue lendo este arquivo caso ele seja sobrescrito pela auto-atualização.
+[ "$(basename -s .git "$(git config --local --get remote.origin.url)")" != "git-hooks" ] && echo "Skipped" || ( [ -f "$copyGitHooksScript" ] && chmod +x "$copyGitHooksScript" && echo "Running the script '$copyGitHooksScript'" && ./$copyGitHooksScript --update-only-git-hooks ); exit $?
